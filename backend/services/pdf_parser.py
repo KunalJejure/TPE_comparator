@@ -1,24 +1,20 @@
 from __future__ import annotations
 
-"""PDF parsing utilities for text and page images."""
+"""PDF parsing utilities — text extraction and page-to-image rendering."""
 
+import io
 import logging
 from pathlib import Path
 from typing import List
-import io
 
 import fitz  # PyMuPDF
 from PIL import Image
-
 
 logger = logging.getLogger(__name__)
 
 
 def extract_text(pdf_path: str) -> List[str]:
     """Extract text from a PDF file, page by page.
-
-    Args:
-        pdf_path: Path to the PDF file on disk.
 
     Returns:
         List of text strings, one per page, in order.
@@ -37,13 +33,10 @@ def extract_text(pdf_path: str) -> List[str]:
         for page_index in range(len(doc)):
             page = doc.load_page(page_index)
             texts.append(page.get_text())
-
         logger.info("Extracted text from %d pages in %s", len(texts), pdf_path)
-
-    except Exception as exc:  # pragma: no cover
+    except Exception as exc:
         logger.exception("Failed to extract text from %s", pdf_path)
         raise exc
-
     finally:
         if doc is not None:
             doc.close()
@@ -74,25 +67,19 @@ def page_to_image(pdf_path: str, page_num: int) -> Image.Image:
 
     try:
         doc = fitz.open(pdf_path)
-
         if page_num >= len(doc):
             raise IndexError("Page number out of range")
 
         page = doc.load_page(page_num)
-
-        # Render page to image
         pix = page.get_pixmap(dpi=150)
         img_bytes = pix.tobytes("png")
-
         image = Image.open(io.BytesIO(img_bytes))
 
         logger.info("Rendered page %d of %s to image", page_num + 1, pdf_path)
         return image
-
-    except Exception as exc:  # pragma: no cover
+    except Exception as exc:
         logger.exception("Failed to render page %d of %s", page_num, pdf_path)
         raise exc
-
     finally:
         if doc is not None:
             doc.close()

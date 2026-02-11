@@ -1,28 +1,19 @@
-import os
+from __future__ import annotations
+
+"""AI-powered semantic PDF comparison via Groq (OpenAI-compatible)."""
+
 import json
-from typing import Dict, Any, List
+import logging
+import os
+from typing import Any, Dict, List
 
 from openai import OpenAI
-import dotenv
+from dotenv import load_dotenv
 
-# Load .env file
-dotenv.load_dotenv()
+load_dotenv()
+logger = logging.getLogger(__name__)
 
-# 🔑 GROQ API KEY
-# Make sure this exists in your environment or .env file:
-# GROQ_API_KEY=gsk_xxxxxxxxxxxxxxxxxxxxx
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
-
-if not GROQ_API_KEY:
-    raise RuntimeError(
-        "GROQ_API_KEY is not set. Please set it in environment variables or .env file."
-    )
-
-# ✅ OpenAI SDK pointing to Groq
-client = OpenAI(
-    api_key=GROQ_API_KEY,
-    base_url="https://api.groq.com/openai/v1",
-)
 
 SYSTEM_PROMPT = """
 You are a deterministic PDF comparison engine.
@@ -76,23 +67,15 @@ Return STRICT JSON in this EXACT schema:
 
 
 def _safe_json_parse(raw: str) -> Dict[str, Any]:
-    """
-    Safely extract and parse JSON from LLM output.
-    Handles ```json ... ``` and stray text.
-    """
+    """Safely extract and parse JSON from LLM output."""
     raw = raw.strip()
-
-    # Remove Markdown code fences if present
     if raw.startswith("```"):
         raw = raw.split("```")[1]
         raw = raw.replace("json", "", 1).strip()
-
     try:
         return json.loads(raw)
     except json.JSONDecodeError as exc:
-        raise RuntimeError(
-            f"Groq returned malformed JSON:\n{raw}"
-        ) from exc
+        raise RuntimeError(f"Groq returned malformed JSON:\n{raw}") from exc
 
 
 def ai_compare(
@@ -100,16 +83,27 @@ def ai_compare(
     text2: str,
     image_summary: List[Dict[str, Any]],
 ) -> Dict[str, Any]:
+    """Run AI semantic comparison via Groq.
+
+    Raises RuntimeError if GROQ_API_KEY is not set.
+    """
+    if not GROQ_API_KEY:
+        raise RuntimeError("GROQ_API_KEY is not set in environment.")
+
+    client = OpenAI(
+        api_key=GROQ_API_KEY,
+        base_url="https://api.groq.com/openai/v1",
+    )
 
     response = client.chat.completions.create(
-        model="llama-3.3-70b-versatile",  # ✅ ACTIVE GROQ MODEL
-        temperature=0,  # 🔒 deterministic
+        model="llama-3.3-70b-versatile",
+        temperature=0,
         messages=[
             {"role": "system", "content": SYSTEM_PROMPT},
             {
                 "role": "user",
                 "content": USER_PROMPT.format(
-                    text1=text1[:12000],  # safety trim
+                    text1=text1[:12000],
                     text2=text2[:12000],
                     image_summary=json.dumps(image_summary),
                 ),

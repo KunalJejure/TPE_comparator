@@ -1,37 +1,39 @@
 [tool.poetry]
 name = "pdf-comparator"
-version = "0.1.0"
+version = "1.0.0"
 description = "AI-powered PDF comparison with visual diffs and report generation"
 authors = ["Kunal Jejure <kunal@example.com>"]
 readme = "README.md"
-packages = [{ include = "app" }, { include = "utils" }]
+packages = [{ include = "backend" }]
 
 [tool.poetry.dependencies]
-python = "^3.10"
+python = "^3.9"
 
 # --- Web / UI ---
-streamlit = "^1.32.0"
-fastapi = "^0.110.0"
-uvicorn = { extras = ["standard"], version = "^0.29.0" }
-jinja2 = "^3.1.3"
+fastapi = ">=0.110.0"
+uvicorn = { extras = ["standard"], version = ">=0.29.0" }
+jinja2 = ">=3.1.3"
+python-multipart = "*"
 
 # --- AI / LLM ---
-openai = "^1.12.0"
-python-dotenv = "^1.0.1"
+openai = ">=1.3.0"
+python-dotenv = ">=1.0.1"
+
+# --- PDF processing ---
+pymupdf = "*"
+pillow = ">=10.2.0"
+reportlab = ">=4.1.0"
 
 # --- Image processing ---
-pillow = "^10.2.0"
-opencv-python = "^4.9.0.80"
-numpy = "^1.26.4"
-scikit-image = "^0.22.0"
-
-# --- PDF generation ---
-reportlab = "^4.1.0"
+opencv-python = ">=4.9.0"
+numpy = ">=1.26.0"
+scikit-image = ">=0.22.0"
 
 [tool.poetry.group.dev.dependencies]
-black = "^24.2.0"
-isort = "^5.13.2"
-mypy = "^1.8.0"
+black = ">=24.2.0"
+isort = ">=5.13.2"
+mypy = ">=1.8.0"
+pytest = ">=7.0.0"
 
 [build-system]
 requires = ["poetry-core"]

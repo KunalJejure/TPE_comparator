@@ -1,15 +1,24 @@
+# Web framework
 fastapi
-uvicorn
+uvicorn[standard]
 python-multipart
 jinja2
-pillow
+
+# PDF processing
 pymupdf
-pdf2image
-openai>=1.3.0
-python-dotenv
-streamlit
+Pillow
+
+# Image processing / visual diff
 opencv-python
 numpy
-Pillow
 scikit-image
-pdf2image
+
+# AI / LLM
+openai>=1.3.0
+python-dotenv
+
+# PDF report generation
+reportlab
+
+# Streamlit (optional UI)
+streamlit

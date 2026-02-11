@@ -1,6 +1,11 @@
-def main():
-    print("Hello from cursorproject!")
+"""Entry point — run with: python main.py"""
 
+import uvicorn
 
 if __name__ == "__main__":
-    main()
+    uvicorn.run(
+        "backend.app:app",
+        host="0.0.0.0",
+        port=8000,
+        reload=True,
+    )
