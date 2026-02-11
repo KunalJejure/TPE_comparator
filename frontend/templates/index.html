@@ -573,7 +573,7 @@
         }
 
         /* ================================================================
-           RESULTS VIEW — GITHUB-STYLE DIFF
+           RESULTS VIEW — CENTRALIZED TABS
            ================================================================ */
         .results-container {
             display: flex;
@@ -630,30 +630,86 @@
         .r-stat .r-val { font-size: 1.3rem; font-weight: 700; }
         .r-stat .r-lbl { font-size: .72rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: .5px; margin-top: 4px; }
 
-        /* Page diff section */
-        .page-diff-section {
+        /* Central tabs (top-level) */
+        .central-tabs {
             background: var(--card);
             border-radius: var(--radius);
             border: 1px solid var(--border);
             box-shadow: var(--shadow);
             overflow: hidden;
         }
-        .page-diff-header {
+        .central-tab-nav {
+            display: flex;
+            border-bottom: 2px solid var(--border);
+            background: var(--bg);
+            padding: 0 8px;
+        }
+        .central-tab-btn {
+            padding: 14px 24px;
+            font-size: .92rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            cursor: pointer;
+            border: none;
+            border-bottom: 3px solid transparent;
+            transition: all .15s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: none;
+            margin-bottom: -2px;
+        }
+        .central-tab-btn:hover { color: var(--text-primary); background: rgba(59,130,246,.04); }
+        .central-tab-btn.active {
+            color: var(--accent);
+            border-bottom-color: var(--accent);
+            font-weight: 700;
+        }
+        .central-tab-btn .ctab-count {
+            background: var(--border);
+            padding: 2px 9px;
+            border-radius: 12px;
+            font-size: .75rem;
+            font-weight: 600;
+        }
+        .central-tab-btn.active .ctab-count {
+            background: var(--accent-light);
+            color: var(--accent);
+        }
+
+        .central-tab-panel { display: none; }
+        .central-tab-panel.active { display: block; }
+
+        /* Page section within a central tab */
+        .page-section {
+            border-bottom: 1px solid var(--border);
+        }
+        .page-section:last-child { border-bottom: none; }
+
+        .page-section-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 16px 20px;
-            border-bottom: 1px solid var(--border);
+            padding: 14px 24px;
             background: var(--bg);
+            cursor: pointer;
+            transition: background .15s;
+            user-select: none;
         }
-        .page-diff-header .page-label {
+        .page-section-header:hover { background: #EDF2F7; }
+        .page-section-header .psh-left {
             display: flex;
             align-items: center;
             gap: 10px;
             font-weight: 600;
             font-size: .95rem;
         }
-        .page-diff-header .page-badge {
+        .page-section-header .psh-left .chevron {
+            transition: transform .2s;
+        }
+        .page-section-header.collapsed .chevron { transform: rotate(-90deg); }
+
+        .page-badge {
             padding: 4px 12px;
             border-radius: 20px;
             font-size: .78rem;
@@ -664,7 +720,7 @@
         .page-badge.added { background: #e0f2fe; color: #0369a1; }
         .page-badge.removed { background: #fef3c7; color: #92400e; }
 
-        .page-diff-header .page-meta {
+        .page-section-header .psh-right {
             display: flex;
             align-items: center;
             gap: 16px;
@@ -672,54 +728,14 @@
             color: var(--text-secondary);
         }
 
-        /* Tab navigation for text/image diff */
-        .diff-tabs {
-            display: flex;
-            border-bottom: 1px solid var(--border);
-            background: var(--bg);
+        .page-section-body {
+            overflow: hidden;
+            transition: max-height .3s ease;
         }
-        .diff-tab {
-            padding: 10px 20px;
-            font-size: .85rem;
-            font-weight: 500;
-            color: var(--text-secondary);
-            cursor: pointer;
-            border-bottom: 2px solid transparent;
-            transition: all .15s;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            background: none;
-            border-top: none;
-            border-left: none;
-            border-right: none;
-        }
-        .diff-tab:hover { color: var(--text-primary); }
-        .diff-tab.active {
-            color: var(--accent);
-            border-bottom-color: var(--accent);
-            font-weight: 600;
-        }
-        .diff-tab .tab-count {
-            background: var(--border);
-            padding: 1px 7px;
-            border-radius: 10px;
-            font-size: .72rem;
-            font-weight: 600;
-        }
-        .diff-tab.active .tab-count {
-            background: var(--accent-light);
-            color: var(--accent);
-        }
-
-        /* Tab content */
-        .diff-tab-content { display: none; }
-        .diff-tab-content.active { display: block; }
+        .page-section-body.collapsed { max-height: 0 !important; overflow: hidden; }
 
         /* GitHub-style side-by-side text diff */
-        .diff-table-wrap {
-            overflow-x: auto;
-        }
+        .diff-table-wrap { overflow-x: auto; }
         .diff-table {
             width: 100%;
             border-collapse: collapse;
@@ -730,13 +746,7 @@
         }
         .diff-table colgroup col.gutter { width: 52px; }
         .diff-table colgroup col.content { width: calc(50% - 52px); }
-
-        .diff-table .diff-divider {
-            width: 1px;
-            background: var(--diff-border);
-            padding: 0;
-        }
-
+        .diff-table .diff-divider { width: 1px; background: var(--diff-border); padding: 0; }
         .diff-table td {
             padding: 0 12px;
             vertical-align: top;
@@ -744,7 +754,6 @@
             word-break: break-all;
             border: none;
         }
-
         .diff-table .gutter {
             background: var(--diff-gutter);
             color: var(--text-muted);
@@ -756,35 +765,21 @@
             width: 52px;
             min-width: 52px;
         }
-
         .diff-table tr.diff-equal td.code { background: var(--card); }
         .diff-table tr.diff-equal td.gutter { background: var(--diff-gutter); }
-
         .diff-table tr.diff-delete td.code-left { background: var(--diff-del-bg); color: var(--diff-del-text); }
         .diff-table tr.diff-delete td.gutter-left { background: var(--diff-gutter-del); }
         .diff-table tr.diff-delete td.code-right { background: var(--diff-gutter); }
-
         .diff-table tr.diff-insert td.code-right { background: var(--diff-add-bg); color: var(--diff-add-text); }
         .diff-table tr.diff-insert td.gutter-right { background: var(--diff-gutter-add); }
         .diff-table tr.diff-insert td.code-left { background: var(--diff-gutter); }
-
         .diff-table tr.diff-replace td.code-left { background: var(--diff-del-bg); color: var(--diff-del-text); }
         .diff-table tr.diff-replace td.gutter-left { background: var(--diff-gutter-del); }
         .diff-table tr.diff-replace td.code-right { background: var(--diff-add-bg); color: var(--diff-add-text); }
         .diff-table tr.diff-replace td.gutter-right { background: var(--diff-gutter-add); }
+        .diff-table .hl-del { background: var(--diff-del-hl); border-radius: 2px; padding: 0 1px; }
+        .diff-table .hl-add { background: var(--diff-add-hl); border-radius: 2px; padding: 0 1px; }
 
-        .diff-table .hl-del {
-            background: var(--diff-del-hl);
-            border-radius: 2px;
-            padding: 0 1px;
-        }
-        .diff-table .hl-add {
-            background: var(--diff-add-hl);
-            border-radius: 2px;
-            padding: 0 1px;
-        }
-
-        /* Diff file header */
         .diff-file-header {
             display: flex;
             justify-content: space-between;
@@ -797,43 +792,9 @@
         }
         .diff-file-header .dfh-left { color: var(--danger); }
         .diff-file-header .dfh-right { color: var(--success); }
-        .diff-stats-inline {
-            display: flex;
-            gap: 8px;
-            font-size: .78rem;
-            font-weight: 500;
-        }
+        .diff-stats-inline { display: flex; gap: 8px; font-size: .78rem; font-weight: 500; }
         .diff-stats-inline .ds-add { color: var(--success); }
         .diff-stats-inline .ds-del { color: var(--danger); }
-
-        /* Side-by-side image comparison */
-        .image-compare {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 0;
-        }
-        .image-compare-panel {
-            padding: 16px;
-            text-align: center;
-            border-right: 1px solid var(--border);
-        }
-        .image-compare-panel:last-child { border-right: none; }
-        .image-compare-panel h5 {
-            font-size: .82rem;
-            font-weight: 600;
-            color: var(--text-secondary);
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-        }
-        .image-compare-panel img {
-            max-width: 100%;
-            border-radius: 8px;
-            border: 1px solid var(--border);
-            box-shadow: var(--shadow);
-        }
 
         /* Overlay diff image (full width) */
         .image-overlay-section {
@@ -857,42 +818,158 @@
             box-shadow: 0 2px 12px rgba(0,0,0,0.08);
         }
 
-        /* AI Insights card */
-        .ai-insights {
-            padding: 16px 20px;
-            border-top: 1px solid var(--border);
+        /* ================================================================
+           AI CHAT WINDOW
+           ================================================================ */
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            height: 520px;
+            max-height: 65vh;
         }
-        .ai-insights h5 {
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        .chat-messages::-webkit-scrollbar { width: 6px; }
+        .chat-messages::-webkit-scrollbar-track { background: transparent; }
+        .chat-messages::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+        .chat-msg {
+            display: flex;
+            gap: 10px;
+            max-width: 85%;
+            animation: chatFadeIn .25s ease;
+        }
+        @keyframes chatFadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        .chat-msg.user { align-self: flex-end; flex-direction: row-reverse; }
+        .chat-msg.ai { align-self: flex-start; }
+
+        .chat-avatar {
+            width: 32px; height: 32px;
+            border-radius: 50%;
+            display: grid; place-items: center;
+            font-size: .72rem;
+            font-weight: 700;
+            color: #fff;
+            flex-shrink: 0;
+        }
+        .chat-avatar.user-av { background: var(--accent); }
+        .chat-avatar.ai-av { background: #8B5CF6; }
+
+        .chat-bubble {
+            padding: 12px 16px;
+            border-radius: 16px;
             font-size: .88rem;
+            line-height: 1.65;
+        }
+        .chat-msg.user .chat-bubble {
+            background: var(--accent);
+            color: #fff;
+            border-bottom-right-radius: 4px;
+        }
+        .chat-msg.ai .chat-bubble {
+            background: var(--bg);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+            border-bottom-left-radius: 4px;
+        }
+        .chat-msg.ai .chat-bubble pre {
+            background: #1E293B;
+            color: #E2E8F0;
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: .8rem;
+            overflow-x: auto;
+            margin: 8px 0;
+        }
+        .chat-msg.ai .chat-bubble ul, .chat-msg.ai .chat-bubble ol {
+            margin: 6px 0;
+            padding-left: 18px;
+        }
+        .chat-msg.ai .chat-bubble strong { color: var(--text-primary); }
+
+        .chat-typing {
+            display: flex;
+            gap: 4px;
+            padding: 12px 16px;
+            align-items: center;
+        }
+        .chat-typing span {
+            width: 7px; height: 7px;
+            background: var(--text-muted);
+            border-radius: 50%;
+            animation: typing 1.2s infinite ease-in-out;
+        }
+        .chat-typing span:nth-child(2) { animation-delay: .2s; }
+        .chat-typing span:nth-child(3) { animation-delay: .4s; }
+        @keyframes typing {
+            0%, 60%, 100% { transform: translateY(0); opacity: .4; }
+            30% { transform: translateY(-6px); opacity: 1; }
+        }
+
+        .chat-input-bar {
+            display: flex;
+            gap: 10px;
+            padding: 16px 24px;
+            border-top: 1px solid var(--border);
+            background: var(--bg);
+        }
+        .chat-input {
+            flex: 1;
+            padding: 11px 16px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            font-size: .9rem;
+            font-family: inherit;
+            background: var(--card);
+            color: var(--text-primary);
+            outline: none;
+            transition: border-color .15s;
+        }
+        .chat-input:focus { border-color: var(--accent); }
+        .chat-input::placeholder { color: var(--text-muted); }
+        .chat-send-btn {
+            padding: 11px 20px;
+            background: var(--accent);
+            color: #fff;
+            border: none;
+            border-radius: 12px;
             font-weight: 600;
-            margin-bottom: 10px;
+            font-size: .88rem;
             display: flex;
             align-items: center;
             gap: 6px;
-            color: #8B5CF6;
+            transition: background .15s;
         }
-        .ai-insight-item {
-            padding: 8px 12px;
-            background: #F5F3FF;
-            border-radius: 8px;
-            margin-bottom: 6px;
-            font-size: .82rem;
-            line-height: 1.5;
+        .chat-send-btn:hover { background: var(--accent-hover); }
+        .chat-send-btn:disabled { opacity: .5; cursor: not-allowed; }
+
+        .chat-suggestions {
             display: flex;
-            align-items: flex-start;
             gap: 8px;
+            padding: 0 24px 12px;
+            flex-wrap: wrap;
         }
-        .ai-insight-item .ai-type {
-            font-weight: 600;
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-size: .72rem;
-            white-space: nowrap;
+        .chat-suggestion-chip {
+            padding: 7px 14px;
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            font-size: .78rem;
+            color: var(--text-secondary);
+            background: var(--card);
+            cursor: pointer;
+            transition: all .15s;
         }
-        .ai-type.added { background: var(--diff-add-bg); color: var(--diff-add-text); }
-        .ai-type.removed { background: var(--diff-del-bg); color: var(--diff-del-text); }
-        .ai-type.modified { background: var(--diff-replace-bg); color: #92400E; }
-        .ai-type.image { background: #EDE9FE; color: #6D28D9; }
+        .chat-suggestion-chip:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+            background: var(--accent-light);
+        }
 
         /* ================================================================
            RESPONSIVE
@@ -1542,7 +1619,7 @@
     }
 
     // ================================================================
-    // RENDER RESULTS — GitHub-style diff
+    // RENDER RESULTS — Centralized Tabs with Page Headers
     // ================================================================
     function escapeHtml(str) {
         const div = document.createElement('div');
@@ -1550,21 +1627,39 @@
         return div.innerHTML;
     }
 
+    // Simple markdown-ish rendering for AI chat replies
+    function renderMarkdown(text) {
+        let html = escapeHtml(text);
+        // Bold
+        html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+        // Bullet lists
+        html = html.replace(/^[-•] (.+)$/gm, '<li>$1</li>');
+        html = html.replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>');
+        // Numbered lists
+        html = html.replace(/^\d+\. (.+)$/gm, '<li>$1</li>');
+        // Inline code
+        html = html.replace(/`([^`]+)`/g, '<code style="background:#F1F5F9;padding:1px 5px;border-radius:4px;font-size:.82rem;">$1</code>');
+        // Line breaks
+        html = html.replace(/\n/g, '<br>');
+        return html;
+    }
+
+    // Chat history for AI conversation
+    let chatHistory = [];
+
     function renderResults(data) {
         const container = document.getElementById('resultsContainer');
+        chatHistory = []; // Reset chat on new comparison
 
         const total = data.total_pages || 0;
         const pages = data.pages || [];
         const passed = pages.filter(p => p.status === 'PASS').length;
         const changed = pages.filter(p => p.status === 'FAIL').length;
-        const added = pages.filter(p => p.status === 'ADDED').length;
-        const removed = pages.filter(p => p.status === 'REMOVED').length;
         const avgConf = pages.length > 0
             ? (pages.reduce((s, p) => s + (p.confidence || 0), 0) / pages.length * 100).toFixed(1)
             : '0';
         const totalTextChanges = pages.reduce((s, p) => s + (p.text_changes_count || 0), 0);
 
-        // Page count info
         const origPages = data.original_pages || total;
         const revPages = data.revised_pages || total;
         const pageCountNote = origPages !== revPages
@@ -1573,6 +1668,12 @@
                 Page count differs: Original has ${origPages} pages, Revised has ${revPages} pages
                </div>`
             : '';
+
+        // Count pages with visual diffs
+        const visualDiffPages = pages.filter(p =>
+            p.overlay_image || p.disposition === 'added' || p.disposition === 'removed' ||
+            (p.image_similarity !== undefined && p.image_similarity < 0.999)
+        ).length;
 
         let html = `
         <!-- Summary -->
@@ -1597,100 +1698,297 @@
                 <div class="r-stat"><div class="r-val">${totalTextChanges}</div><div class="r-lbl">Text Changes</div></div>
             </div>
             ${pageCountNote}
+        </div>
+
+        <!-- Centralized Tabs -->
+        <div class="central-tabs">
+            <div class="central-tab-nav">
+                <button class="central-tab-btn active" onclick="switchCentralTab('textdiff', this)">
+                    <i data-lucide="code-2" style="width:16px;height:16px;"></i>
+                    Text Changes
+                    <span class="ctab-count">${totalTextChanges}</span>
+                </button>
+                <button class="central-tab-btn" onclick="switchCentralTab('visualdiff', this)">
+                    <i data-lucide="scan-search" style="width:16px;height:16px;"></i>
+                    Visual Differences
+                    <span class="ctab-count">${visualDiffPages}</span>
+                </button>
+                <button class="central-tab-btn" onclick="switchCentralTab('aichat', this)">
+                    <i data-lucide="message-circle" style="width:16px;height:16px;"></i>
+                    AI Assistant
+                </button>
+            </div>
+
+            <!-- ========== TEXT CHANGES TAB ========== -->
+            <div class="central-tab-panel active" id="ctab_textdiff">
+                ${renderAllTextDiffs(pages, data)}
+            </div>
+
+            <!-- ========== VISUAL DIFF TAB ========== -->
+            <div class="central-tab-panel" id="ctab_visualdiff">
+                ${renderAllVisualDiffs(pages)}
+            </div>
+
+            <!-- ========== AI CHAT TAB ========== -->
+            <div class="central-tab-panel" id="ctab_aichat">
+                ${renderAIChatPanel()}
+            </div>
         </div>`;
 
-        // Per-page diffs
-        pages.forEach((p, pageIdx) => {
+        container.innerHTML = html;
+        lucide.createIcons();
+
+        // Attach event listeners for collapsible page sections
+        document.querySelectorAll('.page-section-header').forEach(h => {
+            h.addEventListener('click', () => {
+                h.classList.toggle('collapsed');
+                const body = h.nextElementSibling;
+                if (body) body.classList.toggle('collapsed');
+            });
+        });
+
+        // Attach chat handlers
+        const chatInput = document.getElementById('chatInput');
+        const chatSendBtn = document.getElementById('chatSendBtn');
+        if (chatInput && chatSendBtn) {
+            chatSendBtn.addEventListener('click', () => sendChatMessage());
+            chatInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendChatMessage();
+                }
+            });
+        }
+    }
+
+    function switchCentralTab(tabName, el) {
+        const wrapper = el.closest('.central-tabs');
+        wrapper.querySelectorAll('.central-tab-panel').forEach(p => p.classList.remove('active'));
+        wrapper.querySelectorAll('.central-tab-btn').forEach(b => b.classList.remove('active'));
+        const target = document.getElementById('ctab_' + tabName);
+        if (target) target.classList.add('active');
+        el.classList.add('active');
+        lucide.createIcons();
+
+        // Auto-scroll chat to bottom
+        if (tabName === 'aichat') {
+            const msgs = document.getElementById('chatMessages');
+            if (msgs) setTimeout(() => msgs.scrollTop = msgs.scrollHeight, 100);
+        }
+    }
+
+    // ---- All Text Diffs (centralized) ----
+    function renderAllTextDiffs(pages, data) {
+        if (!pages || pages.length === 0) {
+            return '<div style="padding:40px;text-align:center;color:var(--text-muted);">No pages to compare.</div>';
+        }
+
+        let html = '';
+        pages.forEach((p) => {
             const status = p.status || 'FAIL';
-            const isPass = status === 'PASS';
-            const isAdded = status === 'ADDED';
-            const isRemoved = status === 'REMOVED';
             const lineDiff = p.line_diff || [];
             const changesCount = p.text_changes_count || 0;
             const addCount = lineDiff.filter(d => d.type === 'insert').length;
             const delCount = lineDiff.filter(d => d.type === 'delete').length;
             const replaceCount = lineDiff.filter(d => d.type === 'replace').length;
-            const uniqueId = 'page_' + p.page;
-            const regionCount = p.diff_region_count || 0;
 
-            // AI insights
-            const aiTextChanges = p.ai_text_changes || [];
-            const aiImageChanges = p.ai_image_changes || [];
-
-            // Badge class
             let badgeClass = 'fail';
-            if (isPass) badgeClass = 'pass';
-            else if (isAdded) badgeClass = 'added';
-            else if (isRemoved) badgeClass = 'removed';
+            if (status === 'PASS') badgeClass = 'pass';
+            else if (status === 'ADDED') badgeClass = 'added';
+            else if (status === 'REMOVED') badgeClass = 'removed';
 
             html += `
-            <div class="page-diff-section">
-                <div class="page-diff-header">
-                    <div class="page-label">
+            <div class="page-section">
+                <div class="page-section-header">
+                    <div class="psh-left">
+                        <i data-lucide="chevron-down" style="width:16px;height:16px;" class="chevron"></i>
                         <i data-lucide="file-text" style="width:16px;height:16px;"></i>
                         Page ${p.page}
                         <span class="page-badge ${badgeClass}">${status}</span>
                     </div>
-                    <div class="page-meta">
-                        <span>Similarity: <strong>${(p.image_similarity * 100).toFixed(1)}%</strong></span>
+                    <div class="psh-right">
                         <span>Changes: <strong>${changesCount}</strong></span>
+                        <span>Similarity: <strong>${(p.image_similarity * 100).toFixed(1)}%</strong></span>
+                    </div>
+                </div>
+                <div class="page-section-body">
+                    ${renderTextDiff(lineDiff, addCount, delCount, replaceCount, data.original_name, data.revised_name)}
+                </div>
+            </div>`;
+        });
+        return html;
+    }
+
+    // ---- All Visual Diffs (centralized) ----
+    function renderAllVisualDiffs(pages) {
+        if (!pages || pages.length === 0) {
+            return '<div style="padding:40px;text-align:center;color:var(--text-muted);">No pages to compare.</div>';
+        }
+
+        let html = '';
+        pages.forEach((p) => {
+            const status = p.status || 'FAIL';
+            const regionCount = p.diff_region_count || 0;
+            const similarity = ((p.image_similarity || 0) * 100).toFixed(1);
+
+            let badgeClass = 'fail';
+            if (status === 'PASS') badgeClass = 'pass';
+            else if (status === 'ADDED') badgeClass = 'added';
+            else if (status === 'REMOVED') badgeClass = 'removed';
+
+            html += `
+            <div class="page-section">
+                <div class="page-section-header">
+                    <div class="psh-left">
+                        <i data-lucide="chevron-down" style="width:16px;height:16px;" class="chevron"></i>
+                        <i data-lucide="image" style="width:16px;height:16px;"></i>
+                        Page ${p.page}
+                        <span class="page-badge ${badgeClass}">${status}</span>
+                    </div>
+                    <div class="psh-right">
+                        <span>Similarity: <strong>${similarity}%</strong></span>
                         ${regionCount > 0 ? `<span>Regions: <strong>${regionCount}</strong></span>` : ''}
                     </div>
                 </div>
-
-                <!-- Tabs -->
-                <div class="diff-tabs">
-                    <button class="diff-tab active" onclick="switchDiffTab('${uniqueId}', 'text', this)">
-                        <i data-lucide="code-2" style="width:14px;height:14px;"></i>
-                        Text Diff
-                        <span class="tab-count">${changesCount}</span>
-                    </button>
-                    <button class="diff-tab" onclick="switchDiffTab('${uniqueId}', 'images', this)">
-                        <i data-lucide="image" style="width:14px;height:14px;"></i>
-                        Visual Diff
-                    </button>
-                    ${(aiTextChanges.length > 0 || aiImageChanges.length > 0) ? `
-                    <button class="diff-tab" onclick="switchDiffTab('${uniqueId}', 'ai', this)">
-                        <i data-lucide="sparkles" style="width:14px;height:14px;"></i>
-                        AI Insights
-                        <span class="tab-count">${aiTextChanges.length + aiImageChanges.length}</span>
-                    </button>` : ''}
-                </div>
-
-                <!-- Text Diff Tab -->
-                <div class="diff-tab-content active" id="${uniqueId}_text">
-                    ${renderTextDiff(lineDiff, addCount, delCount, replaceCount, data.original_name, data.revised_name)}
-                </div>
-
-                <!-- Images Tab -->
-                <div class="diff-tab-content" id="${uniqueId}_images">
+                <div class="page-section-body">
                     ${renderImageDiff(p)}
                 </div>
-
-                <!-- AI Insights Tab -->
-                ${(aiTextChanges.length > 0 || aiImageChanges.length > 0) ? `
-                <div class="diff-tab-content" id="${uniqueId}_ai">
-                    ${renderAIInsights(aiTextChanges, aiImageChanges)}
-                </div>` : ''}
             </div>`;
         });
+        return html;
+    }
 
-        container.innerHTML = html;
+    // ---- AI Chat Panel ----
+    function renderAIChatPanel() {
+        return `
+        <div class="chat-container">
+            <div class="chat-messages" id="chatMessages">
+                <div class="chat-msg ai">
+                    <div class="chat-avatar ai-av">AI</div>
+                    <div class="chat-bubble">
+                        Hi! I've analyzed your PDF comparison results. Ask me anything about the differences, such as:
+                        <ul>
+                            <li>What are the most significant changes?</li>
+                            <li>Summarize the changes on page 3</li>
+                            <li>Are there any critical modifications?</li>
+                            <li>Which pages are identical?</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="chat-suggestions" id="chatSuggestions">
+                <button class="chat-suggestion-chip" onclick="askSuggestion(this)">Summarize all changes</button>
+                <button class="chat-suggestion-chip" onclick="askSuggestion(this)">Which pages have the most changes?</button>
+                <button class="chat-suggestion-chip" onclick="askSuggestion(this)">Are there any critical differences?</button>
+                <button class="chat-suggestion-chip" onclick="askSuggestion(this)">What is the overall similarity?</button>
+            </div>
+            <div class="chat-input-bar">
+                <input type="text" class="chat-input" id="chatInput" placeholder="Ask about the comparison results..." autocomplete="off" />
+                <button class="chat-send-btn" id="chatSendBtn">
+                    <i data-lucide="send" style="width:16px;height:16px;"></i>
+                    Send
+                </button>
+            </div>
+        </div>`;
+    }
+
+    function askSuggestion(el) {
+        const text = el.textContent.trim();
+        const chatInput = document.getElementById('chatInput');
+        chatInput.value = text;
+        sendChatMessage();
+        // Hide suggestions after first use
+        const suggestions = document.getElementById('chatSuggestions');
+        if (suggestions) suggestions.style.display = 'none';
+    }
+
+    async function sendChatMessage() {
+        const chatInput = document.getElementById('chatInput');
+        const chatMessages = document.getElementById('chatMessages');
+        const chatSendBtn = document.getElementById('chatSendBtn');
+        const msg = chatInput.value.trim();
+        if (!msg || !lastResult) return;
+
+        // Add user message to UI
+        chatMessages.innerHTML += `
+            <div class="chat-msg user">
+                <div class="chat-avatar user-av">You</div>
+                <div class="chat-bubble">${escapeHtml(msg)}</div>
+            </div>`;
+
+        chatInput.value = '';
+        chatSendBtn.disabled = true;
+
+        // Show typing indicator
+        const typingId = 'typing_' + Date.now();
+        chatMessages.innerHTML += `
+            <div class="chat-msg ai" id="${typingId}">
+                <div class="chat-avatar ai-av">AI</div>
+                <div class="chat-bubble">
+                    <div class="chat-typing"><span></span><span></span><span></span></div>
+                </div>
+            </div>`;
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+
+        // Add to history
+        chatHistory.push({ role: 'user', content: msg });
+
+        try {
+            // Build a lightweight context (strip base64 images to save bandwidth)
+            const ctxData = {
+                total_pages: lastResult.total_pages,
+                original_name: lastResult.original_name,
+                revised_name: lastResult.revised_name,
+                original_pages: lastResult.original_pages,
+                revised_pages: lastResult.revised_pages,
+                overall: lastResult.overall,
+                pages: (lastResult.pages || []).map(p => ({
+                    page: p.page,
+                    status: p.status,
+                    image_similarity: p.image_similarity,
+                    text_changes_count: p.text_changes_count,
+                    diff_region_count: p.diff_region_count,
+                    confidence: p.confidence,
+                    disposition: p.disposition,
+                    text_changes: p.text_changes || [],
+                    ai_text_changes: p.ai_text_changes || [],
+                    ai_image_changes: p.ai_image_changes || [],
+                }))
+            };
+
+            const resp = await fetch('/api/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    message: msg,
+                    context: ctxData,
+                    history: chatHistory.slice(-10),
+                }),
+            });
+
+            const typingEl = document.getElementById(typingId);
+
+            if (!resp.ok) {
+                const err = await resp.json();
+                if (typingEl) typingEl.querySelector('.chat-bubble').innerHTML =
+                    `<span style="color:var(--danger);">Error: ${escapeHtml(err.detail || 'Failed to get response')}</span>`;
+            } else {
+                const result = await resp.json();
+                chatHistory.push({ role: 'assistant', content: result.reply });
+                if (typingEl) typingEl.querySelector('.chat-bubble').innerHTML = renderMarkdown(result.reply);
+            }
+        } catch (err) {
+            const typingEl = document.getElementById(typingId);
+            if (typingEl) typingEl.querySelector('.chat-bubble').innerHTML =
+                `<span style="color:var(--danger);">Connection error: ${escapeHtml(err.message)}</span>`;
+        }
+
+        chatSendBtn.disabled = false;
+        chatMessages.scrollTop = chatMessages.scrollHeight;
         lucide.createIcons();
     }
 
-    function switchDiffTab(pageId, tabName, el) {
-        // Hide all tab contents for this page
-        const section = el.closest('.page-diff-section');
-        section.querySelectorAll('.diff-tab-content').forEach(c => c.classList.remove('active'));
-        section.querySelectorAll('.diff-tab').forEach(t => t.classList.remove('active'));
-
-        // Show selected
-        const target = document.getElementById(pageId + '_' + tabName);
-        if (target) target.classList.add('active');
-        el.classList.add('active');
-    }
-
+    // ---- Text diff renderer ----
     function renderTextDiff(lineDiff, addCount, delCount, replaceCount, origName, revName) {
         if (!lineDiff || lineDiff.length === 0) {
             return '<div style="padding:24px;text-align:center;color:var(--text-muted);font-size:.88rem;">No text content to compare on this page.</div>';
@@ -1769,6 +2067,7 @@
         return html;
     }
 
+    // ---- Visual diff renderer ----
     function renderImageDiff(pageData) {
         const origImg = pageData.original_image;
         const revImg = pageData.revised_image;
@@ -1777,7 +2076,6 @@
         const regionCount = pageData.diff_region_count || 0;
         const similarity = ((pageData.image_similarity || 0) * 100).toFixed(1);
 
-        // Page only exists in one version
         if (disposition === 'added') {
             return `<div class="image-overlay-section">
                 <h5 style="color:var(--success);">
@@ -1802,7 +2100,6 @@
             return '<div style="padding:24px;text-align:center;color:var(--text-muted);font-size:.88rem;">No images available for this page.</div>';
         }
 
-        // Identical pages
         if (similarity >= 99.9) {
             return `<div style="padding:24px;text-align:center;color:var(--success);font-size:.88rem;">
                 <i data-lucide="check-circle" style="width:18px;height:18px;display:inline;vertical-align:middle;margin-right:6px;"></i>
@@ -1810,9 +2107,7 @@
             </div>`;
         }
 
-        // Show ONLY the overlay — the revised page with change regions highlighted
         let html = '';
-
         if (overlayImg) {
             html += `
             <div class="image-overlay-section">
@@ -1829,40 +2124,6 @@
             html += '<div style="padding:24px;text-align:center;color:var(--text-muted);font-size:.88rem;">Visual diff overlay not available for this page.</div>';
         }
 
-        return html;
-    }
-
-    function renderAIInsights(textChanges, imageChanges) {
-        let html = '<div class="ai-insights"><h5><i data-lucide="sparkles" style="width:16px;height:16px;"></i> AI-Powered Analysis</h5>';
-
-        textChanges.forEach(c => {
-            const typeClass = (c.type || 'MODIFIED').toLowerCase();
-            html += `
-            <div class="ai-insight-item">
-                <span class="ai-type ${typeClass}">${escapeHtml(c.type || 'CHANGE')}</span>
-                <div>
-                    ${c.original ? `<div style="color:var(--danger);text-decoration:line-through;margin-bottom:2px;">${escapeHtml(c.original)}</div>` : ''}
-                    ${c.revised ? `<div style="color:var(--success);">${escapeHtml(c.revised)}</div>` : ''}
-                </div>
-            </div>`;
-        });
-
-        imageChanges.forEach(c => {
-            html += `
-            <div class="ai-insight-item">
-                <span class="ai-type image">IMAGE</span>
-                <div>
-                    <div>${escapeHtml(c.description || '')}</div>
-                    <div style="font-size:.75rem;color:var(--text-muted);margin-top:2px;">Impact: ${escapeHtml(c.impact || 'N/A')}</div>
-                </div>
-            </div>`;
-        });
-
-        if (textChanges.length === 0 && imageChanges.length === 0) {
-            html += '<div style="color:var(--text-muted);font-size:.82rem;">No AI insights available for this page.</div>';
-        }
-
-        html += '</div>';
         return html;
     }
 </script>

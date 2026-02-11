@@ -7,6 +7,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 from backend.api.compare import router as compare_router
+from backend.api.chat import router as chat_router
 
 # ---- Paths ----
 _BACKEND_DIR = Path(__file__).resolve().parent
@@ -31,6 +32,7 @@ templates = Jinja2Templates(directory=str(_TEMPLATES_DIR))
 
 # API routes
 app.include_router(compare_router, prefix="/api")
+app.include_router(chat_router, prefix="/api")
 
 
 @app.get("/health")
