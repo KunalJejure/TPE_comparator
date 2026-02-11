@@ -661,6 +661,8 @@
         }
         .page-badge.pass { background: var(--success-light); color: var(--success); }
         .page-badge.fail { background: var(--danger-light); color: var(--danger); }
+        .page-badge.added { background: #e0f2fe; color: #0369a1; }
+        .page-badge.removed { background: #fef3c7; color: #92400e; }
 
         .page-diff-header .page-meta {
             display: flex;
@@ -835,15 +837,14 @@
 
         /* Overlay diff image (full width) */
         .image-overlay-section {
-            padding: 16px;
+            padding: 20px 24px;
             text-align: center;
-            border-top: 1px solid var(--border);
         }
         .image-overlay-section h5 {
-            font-size: .82rem;
+            font-size: .88rem;
             font-weight: 600;
-            color: var(--text-secondary);
-            margin-bottom: 10px;
+            color: var(--text-primary);
+            margin-bottom: 6px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -853,7 +854,7 @@
             max-width: 100%;
             border-radius: 8px;
             border: 1px solid var(--border);
-            box-shadow: var(--shadow);
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
         }
 
         /* AI Insights card */
@@ -1555,14 +1556,23 @@
         const total = data.total_pages || 0;
         const pages = data.pages || [];
         const passed = pages.filter(p => p.status === 'PASS').length;
-        const failed = total - passed;
+        const changed = pages.filter(p => p.status === 'FAIL').length;
+        const added = pages.filter(p => p.status === 'ADDED').length;
+        const removed = pages.filter(p => p.status === 'REMOVED').length;
         const avgConf = pages.length > 0
             ? (pages.reduce((s, p) => s + (p.confidence || 0), 0) / pages.length * 100).toFixed(1)
             : '0';
-        const avgSim = pages.length > 0
-            ? (pages.reduce((s, p) => s + (p.image_similarity || 0), 0) / pages.length * 100).toFixed(1)
-            : '0';
         const totalTextChanges = pages.reduce((s, p) => s + (p.text_changes_count || 0), 0);
+
+        // Page count info
+        const origPages = data.original_pages || total;
+        const revPages = data.revised_pages || total;
+        const pageCountNote = origPages !== revPages
+            ? `<div style="font-size:.82rem;color:var(--warning);margin-top:8px;display:flex;align-items:center;gap:6px;">
+                <i data-lucide="alert-circle" style="width:14px;height:14px;"></i>
+                Page count differs: Original has ${origPages} pages, Revised has ${revPages} pages
+               </div>`
+            : '';
 
         let html = `
         <!-- Summary -->
@@ -1582,25 +1592,36 @@
             <div class="result-stats">
                 <div class="r-stat"><div class="r-val">${total}</div><div class="r-lbl">Total Pages</div></div>
                 <div class="r-stat"><div class="r-val" style="color:var(--success);">${passed}</div><div class="r-lbl">Matches</div></div>
-                <div class="r-stat"><div class="r-val" style="color:var(--danger);">${failed}</div><div class="r-lbl">Differences</div></div>
+                <div class="r-stat"><div class="r-val" style="color:var(--danger);">${changed}</div><div class="r-lbl">Changed</div></div>
                 <div class="r-stat"><div class="r-val">${avgConf}%</div><div class="r-lbl">AI Confidence</div></div>
                 <div class="r-stat"><div class="r-val">${totalTextChanges}</div><div class="r-lbl">Text Changes</div></div>
             </div>
+            ${pageCountNote}
         </div>`;
 
         // Per-page diffs
         pages.forEach((p, pageIdx) => {
-            const isPass = p.status === 'PASS';
+            const status = p.status || 'FAIL';
+            const isPass = status === 'PASS';
+            const isAdded = status === 'ADDED';
+            const isRemoved = status === 'REMOVED';
             const lineDiff = p.line_diff || [];
             const changesCount = p.text_changes_count || 0;
             const addCount = lineDiff.filter(d => d.type === 'insert').length;
             const delCount = lineDiff.filter(d => d.type === 'delete').length;
             const replaceCount = lineDiff.filter(d => d.type === 'replace').length;
             const uniqueId = 'page_' + p.page;
+            const regionCount = p.diff_region_count || 0;
 
             // AI insights
             const aiTextChanges = p.ai_text_changes || [];
             const aiImageChanges = p.ai_image_changes || [];
+
+            // Badge class
+            let badgeClass = 'fail';
+            if (isPass) badgeClass = 'pass';
+            else if (isAdded) badgeClass = 'added';
+            else if (isRemoved) badgeClass = 'removed';
 
             html += `
             <div class="page-diff-section">
@@ -1608,11 +1629,12 @@
                     <div class="page-label">
                         <i data-lucide="file-text" style="width:16px;height:16px;"></i>
                         Page ${p.page}
-                        <span class="page-badge ${isPass ? 'pass' : 'fail'}">${p.status}</span>
+                        <span class="page-badge ${badgeClass}">${status}</span>
                     </div>
                     <div class="page-meta">
                         <span>Similarity: <strong>${(p.image_similarity * 100).toFixed(1)}%</strong></span>
                         <span>Changes: <strong>${changesCount}</strong></span>
+                        ${regionCount > 0 ? `<span>Regions: <strong>${regionCount}</strong></span>` : ''}
                     </div>
                 </div>
 
@@ -1750,40 +1772,61 @@
     function renderImageDiff(pageData) {
         const origImg = pageData.original_image;
         const revImg = pageData.revised_image;
-        const diffImg = pageData.diff_image;
         const overlayImg = pageData.overlay_image;
+        const disposition = pageData.disposition || 'compared';
+        const regionCount = pageData.diff_region_count || 0;
+        const similarity = ((pageData.image_similarity || 0) * 100).toFixed(1);
 
-        if (!origImg && !revImg) {
+        // Page only exists in one version
+        if (disposition === 'added') {
+            return `<div class="image-overlay-section">
+                <h5 style="color:var(--success);">
+                    <i data-lucide="plus-circle" style="width:14px;height:14px;"></i>
+                    New Page (only in revised document)
+                </h5>
+                ${revImg ? `<img src="${revImg}" alt="Added page" loading="lazy" style="max-width:70%;margin:0 auto;border:2px solid var(--success);">` : ''}
+            </div>`;
+        }
+
+        if (disposition === 'removed') {
+            return `<div class="image-overlay-section">
+                <h5 style="color:var(--danger);">
+                    <i data-lucide="minus-circle" style="width:14px;height:14px;"></i>
+                    Removed Page (only in original document)
+                </h5>
+                ${origImg ? `<img src="${origImg}" alt="Removed page" loading="lazy" style="max-width:70%;margin:0 auto;border:2px solid var(--danger);opacity:0.8;">` : ''}
+            </div>`;
+        }
+
+        if (!overlayImg && !origImg && !revImg) {
             return '<div style="padding:24px;text-align:center;color:var(--text-muted);font-size:.88rem;">No images available for this page.</div>';
         }
 
-        let html = `
-            <div class="image-compare">
-                <div class="image-compare-panel">
-                    <h5>
-                        <i data-lucide="file-minus" style="width:14px;height:14px;"></i>
-                        Original
-                    </h5>
-                    ${origImg ? `<img src="${origImg}" alt="Original page" loading="lazy">` : '<p style="color:var(--text-muted);font-size:.82rem;">Page not available</p>'}
-                </div>
-                <div class="image-compare-panel">
-                    <h5>
-                        <i data-lucide="file-plus" style="width:14px;height:14px;"></i>
-                        Revised
-                    </h5>
-                    ${revImg ? `<img src="${revImg}" alt="Revised page" loading="lazy">` : '<p style="color:var(--text-muted);font-size:.82rem;">Page not available</p>'}
-                </div>
+        // Identical pages
+        if (similarity >= 99.9) {
+            return `<div style="padding:24px;text-align:center;color:var(--success);font-size:.88rem;">
+                <i data-lucide="check-circle" style="width:18px;height:18px;display:inline;vertical-align:middle;margin-right:6px;"></i>
+                Pages are visually identical (${similarity}% similarity). No visual differences found.
             </div>`;
+        }
+
+        // Show ONLY the overlay — the revised page with change regions highlighted
+        let html = '';
 
         if (overlayImg) {
             html += `
             <div class="image-overlay-section">
                 <h5>
-                    <i data-lucide="layers" style="width:14px;height:14px;"></i>
-                    Difference Overlay (changes highlighted in red/green)
+                    <i data-lucide="scan-search" style="width:14px;height:14px;"></i>
+                    Difference Overlay &mdash; ${regionCount} change region${regionCount !== 1 ? 's' : ''} detected (${similarity}% similar)
                 </h5>
-                <img src="${overlayImg}" alt="Diff overlay" loading="lazy" style="max-width:60%;margin:0 auto;">
+                <p style="font-size:.78rem;color:var(--text-secondary);margin-bottom:12px;text-align:center;">
+                    Changed areas are highlighted with red borders and a subtle tint. Text remains fully readable.
+                </p>
+                <img src="${overlayImg}" alt="Diff overlay" loading="lazy" style="max-width:80%;margin:0 auto;">
             </div>`;
+        } else {
+            html += '<div style="padding:24px;text-align:center;color:var(--text-muted);font-size:.88rem;">Visual diff overlay not available for this page.</div>';
         }
 
         return html;
