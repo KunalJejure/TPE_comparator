@@ -8,9 +8,9 @@
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
 
-    <!-- Lucide Icons (lightweight) -->
+    <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
 
     <!-- Chart.js -->
@@ -39,11 +39,23 @@
             --warning-light:#FFFBEB;
             --border:      #E2E8F0;
             --sidebar-w:   240px;
-            --right-w:     320px;
             --radius:      16px;
             --radius-sm:   10px;
             --shadow:      0 1px 3px rgba(0,0,0,.04), 0 1px 2px rgba(0,0,0,.06);
             --shadow-lg:   0 4px 24px rgba(0,0,0,.06);
+
+            /* Diff colors */
+            --diff-add-bg:     #DCFCE7;
+            --diff-add-text:   #166534;
+            --diff-add-hl:     #BBF7D0;
+            --diff-del-bg:     #FEE2E2;
+            --diff-del-text:   #991B1B;
+            --diff-del-hl:     #FECACA;
+            --diff-replace-bg: #FEF3C7;
+            --diff-gutter:     #F8FAFC;
+            --diff-gutter-add: #D1FAE5;
+            --diff-gutter-del: #FECACA;
+            --diff-border:     #E2E8F0;
         }
 
         html { font-size: 15px; }
@@ -108,6 +120,7 @@
             color: var(--text-secondary);
             transition: all .15s;
             position: relative;
+            cursor: pointer;
         }
         .nav-item:hover { background: var(--bg); color: var(--text-primary); }
         .nav-item.active {
@@ -153,12 +166,11 @@
         }
 
         /* ================================================================
-           MAIN CONTENT
+           MAIN CONTENT AREA
            ================================================================ */
         .main {
             flex: 1;
             margin-left: var(--sidebar-w);
-            margin-right: var(--right-w);
             padding: 28px 36px;
             min-height: 100vh;
         }
@@ -197,6 +209,15 @@
             border: 1px solid var(--border);
         }
 
+        /* ================================================================
+           VIEW: PAGE CONTAINERS (only one visible at a time)
+           ================================================================ */
+        .view { display: none; }
+        .view.active { display: block; }
+
+        /* ================================================================
+           DASHBOARD VIEW
+           ================================================================ */
         /* Stats Row */
         .stats-row {
             display: grid;
@@ -244,7 +265,6 @@
         .stat-change.up   { color: var(--success); }
         .stat-change.down { color: var(--danger); }
 
-        /* Performance Chart Card */
         .chart-card {
             background: var(--card);
             border-radius: var(--radius);
@@ -300,7 +320,6 @@
             border-top: 1px solid var(--border);
         }
         .task-item:first-child { border-top: none; }
-
         .task-icon {
             width: 42px; height: 42px;
             border-radius: 12px;
@@ -311,11 +330,9 @@
         .task-icon.pink   { background: #FCE7F3; color: #EC4899; }
         .task-icon.blue   { background: var(--accent-light); color: var(--accent); }
         .task-icon.green  { background: var(--success-light); color: var(--success); }
-
         .task-info { flex: 1; }
         .task-info .task-name { font-weight: 600; font-size: .9rem; }
         .task-info .task-sub  { font-size: .78rem; color: var(--text-muted); margin-top: 2px; }
-
         .task-status {
             display: flex;
             align-items: center;
@@ -330,7 +347,6 @@
         .status-dot.red    { background: var(--danger); }
         .status-dot.orange { background: var(--warning); }
         .status-dot.green  { background: var(--success); }
-
         .task-time {
             font-size: .82rem;
             color: var(--text-secondary);
@@ -348,139 +364,185 @@
         .task-menu:hover { background: var(--bg); }
 
         /* ================================================================
-           RIGHT SIDEBAR
+           COMPARE VIEW
            ================================================================ */
-        .right-sidebar {
-            width: var(--right-w);
-            background: var(--card);
-            border-left: 1px solid var(--border);
-            position: fixed;
-            top: 0; right: 0; bottom: 0;
-            padding: 28px 24px;
+        .compare-container {
             display: flex;
             flex-direction: column;
-            overflow-y: auto;
+            gap: 24px;
         }
 
-        /* Upload Panel */
-        .upload-panel {
-            text-align: center;
-            margin-bottom: 28px;
-        }
-        .upload-avatar {
-            width: 80px; height: 80px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, var(--accent-light), #DBEAFE);
-            display: grid; place-items: center;
-            margin: 0 auto 14px;
-            color: var(--accent);
-            position: relative;
-        }
-        .upload-avatar .status-badge {
-            position: absolute;
-            bottom: 2px; right: 2px;
-            width: 14px; height: 14px;
-            background: var(--success);
-            border-radius: 50%;
-            border: 2px solid var(--card);
-        }
-        .upload-panel h4 { font-size: 1rem; font-weight: 700; margin-bottom: 2px; }
-        .upload-panel .handle { font-size: .82rem; color: var(--text-muted); margin-bottom: 14px; }
-
-        .upload-actions {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            margin-bottom: 16px;
-        }
-        .upload-actions button {
-            width: 38px; height: 38px;
-            border-radius: 10px;
-            border: 1px solid var(--border);
+        /* Upload Section */
+        .upload-section {
             background: var(--card);
-            display: grid; place-items: center;
-            color: var(--text-secondary);
-            transition: all .15s;
+            border-radius: var(--radius);
+            padding: 28px 32px;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow);
         }
-        .upload-actions button:hover {
-            background: var(--accent-light);
-            color: var(--accent);
-            border-color: var(--accent);
+        .upload-section h3 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+        .upload-section .upload-subtitle {
+            font-size: .88rem;
+            color: var(--text-secondary);
+            margin-bottom: 24px;
         }
 
-        /* Drop zone */
-        .drop-zone {
+        .upload-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-bottom: 20px;
+        }
+
+        .upload-box {
             border: 2px dashed var(--border);
             border-radius: var(--radius);
-            padding: 24px 16px;
+            padding: 32px 24px;
             text-align: center;
             transition: all .2s;
-            margin-bottom: 12px;
             cursor: pointer;
+            position: relative;
+            min-height: 180px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
         }
-        .drop-zone:hover, .drop-zone.dragover {
+        .upload-box:hover, .upload-box.dragover {
             border-color: var(--accent);
             background: var(--accent-light);
         }
-        .drop-zone i { display: block; margin-bottom: 8px; color: var(--accent); }
-        .drop-zone p { font-size: .82rem; color: var(--text-secondary); line-height: 1.5; }
-        .drop-zone .browse { color: var(--accent); font-weight: 600; cursor: pointer; }
+        .upload-box.has-file {
+            border-color: var(--success);
+            border-style: solid;
+            background: var(--success-light);
+        }
+        .upload-box .upload-box-icon {
+            width: 56px; height: 56px;
+            border-radius: 14px;
+            display: grid; place-items: center;
+            margin: 0 auto 4px;
+        }
+        .upload-box .upload-box-icon.original {
+            background: var(--accent-light);
+            color: var(--accent);
+        }
+        .upload-box .upload-box-icon.revised {
+            background: #F3E8FF;
+            color: #9333EA;
+        }
+        .upload-box h4 { font-size: .95rem; font-weight: 600; }
+        .upload-box p { font-size: .82rem; color: var(--text-secondary); line-height: 1.5; }
+        .upload-box .browse-link { color: var(--accent); font-weight: 600; cursor: pointer; }
 
-        .file-tag {
+        .file-info {
             display: flex;
             align-items: center;
-            gap: 8px;
-            background: var(--bg);
-            padding: 8px 12px;
-            border-radius: 8px;
-            margin-bottom: 6px;
-            font-size: .82rem;
+            gap: 10px;
+            background: var(--card);
+            padding: 10px 14px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+            margin-top: 8px;
+            width: 100%;
         }
-        .file-tag .fname { flex: 1; font-weight: 500; }
-        .file-tag .fsize { color: var(--text-muted); font-size: .75rem; }
-        .file-tag .remove-file {
+        .file-info .fi-icon { color: var(--accent); flex-shrink: 0; }
+        .file-info .fi-name { font-weight: 600; font-size: .85rem; flex: 1; text-align: left; }
+        .file-info .fi-size { font-size: .75rem; color: var(--text-muted); }
+        .file-info .fi-remove {
             cursor: pointer;
             color: var(--danger);
             padding: 2px;
+            border-radius: 4px;
+            transition: background .15s;
+        }
+        .file-info .fi-remove:hover { background: var(--danger-light); }
+
+        .compare-actions {
+            display: flex;
+            align-items: center;
+            gap: 16px;
         }
 
         .btn-compare {
-            width: 100%;
-            padding: 12px;
+            padding: 13px 36px;
             background: var(--accent);
             color: #fff;
             border: none;
             border-radius: var(--radius-sm);
             font-weight: 600;
-            font-size: .9rem;
+            font-size: .95rem;
             transition: background .15s;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 8px;
-            margin-top: 10px;
         }
         .btn-compare:hover { background: var(--accent-hover); }
-        .btn-compare:disabled {
-            opacity: .5;
-            cursor: not-allowed;
-        }
+        .btn-compare:disabled { opacity: .5; cursor: not-allowed; }
 
-        /* Activity */
-        .activity-section { flex: 1; margin-top: 4px; }
-        .activity-section h4 {
-            font-size: .9rem;
-            font-weight: 700;
-            text-align: center;
-            margin-bottom: 18px;
+        .btn-reset {
+            padding: 13px 24px;
+            background: var(--bg);
             color: var(--text-secondary);
-            letter-spacing: .3px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            font-weight: 500;
+            font-size: .95rem;
+            transition: all .15s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
+        .btn-reset:hover { background: var(--card); border-color: var(--text-muted); }
 
+        .progress-bar {
+            display: none;
+            height: 6px;
+            background: var(--border);
+            border-radius: 6px;
+            overflow: hidden;
+            margin-top: 16px;
+        }
+        .progress-bar .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent), #8B5CF6);
+            border-radius: 6px;
+            width: 0%;
+            transition: width .3s;
+        }
+        .spinner {
+            display: none;
+            width: 20px; height: 20px;
+            border: 2px solid rgba(255,255,255,.3);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin .6s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Activity Feed in Compare */
+        .activity-section {
+            background: var(--card);
+            border-radius: var(--radius);
+            padding: 24px;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow);
+        }
+        .activity-section h3 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 18px;
+        }
         .activity-item {
             display: flex;
             gap: 12px;
-            margin-bottom: 18px;
+            margin-bottom: 16px;
         }
         .activity-avatar {
             width: 36px; height: 36px;
@@ -500,28 +562,6 @@
         .activity-content .act-name { font-weight: 600; font-size: .85rem; }
         .activity-content .act-time { font-size: .75rem; color: var(--text-muted); }
         .activity-content .act-desc { font-size: .8rem; color: var(--text-secondary); margin-top: 2px; }
-
-        .activity-file {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            background: var(--bg);
-            padding: 10px 14px;
-            border-radius: var(--radius-sm);
-            margin-top: 8px;
-        }
-        .activity-file .af-icon {
-            width: 32px; height: 32px;
-            background: var(--accent-light);
-            border-radius: 8px;
-            display: grid; place-items: center;
-            color: var(--accent);
-        }
-        .activity-file .af-info { flex: 1; }
-        .activity-file .af-name { font-size: .82rem; font-weight: 600; }
-        .activity-file .af-size { font-size: .72rem; color: var(--text-muted); }
-
-        /* Message Bubble */
         .msg-bubble {
             background: var(--accent-light);
             border-radius: 12px 12px 4px 12px;
@@ -533,55 +573,53 @@
         }
 
         /* ================================================================
-           MODAL OVERLAY FOR RESULTS
+           RESULTS VIEW — GITHUB-STYLE DIFF
            ================================================================ */
-        .modal-overlay {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,.4);
-            backdrop-filter: blur(4px);
-            z-index: 100;
-            justify-content: center;
-            align-items: center;
-            padding: 40px;
+        .results-container {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
         }
-        .modal-overlay.active { display: flex; }
 
-        .modal-content {
+        /* Summary bar */
+        .result-summary {
             background: var(--card);
             border-radius: var(--radius);
-            padding: 32px;
-            max-width: 860px;
-            width: 100%;
-            max-height: 85vh;
-            overflow-y: auto;
-            box-shadow: var(--shadow-lg);
-            position: relative;
+            padding: 24px 28px;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow);
         }
-        .modal-close {
-            position: absolute;
-            top: 16px; right: 16px;
-            width: 36px; height: 36px;
-            border-radius: 10px;
+        .result-summary-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        .result-summary-top h3 { font-size: 1.15rem; font-weight: 700; }
+        .result-summary-top .result-actions { display: flex; gap: 10px; }
+        .result-summary-top .result-actions button {
+            padding: 8px 18px;
+            border-radius: var(--radius-sm);
             border: 1px solid var(--border);
             background: var(--card);
-            display: grid; place-items: center;
+            font-weight: 500;
+            font-size: .85rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
             color: var(--text-secondary);
-            cursor: pointer;
             transition: all .15s;
         }
-        .modal-close:hover { background: var(--danger-light); color: var(--danger); }
-
-        .result-header { margin-bottom: 24px; }
-        .result-header h2 { font-size: 1.3rem; font-weight: 700; }
-        .result-header p { color: var(--text-secondary); font-size: .88rem; margin-top: 4px; }
+        .result-summary-top .result-actions button:hover {
+            background: var(--accent-light);
+            color: var(--accent);
+            border-color: var(--accent);
+        }
 
         .result-stats {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(5, 1fr);
             gap: 14px;
-            margin-bottom: 24px;
         }
         .r-stat {
             background: var(--bg);
@@ -590,73 +628,285 @@
             text-align: center;
         }
         .r-stat .r-val { font-size: 1.3rem; font-weight: 700; }
-        .r-stat .r-lbl { font-size: .75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: .5px; margin-top: 4px; }
+        .r-stat .r-lbl { font-size: .72rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: .5px; margin-top: 4px; }
 
-        .page-result {
+        /* Page diff section */
+        .page-diff-section {
+            background: var(--card);
+            border-radius: var(--radius);
             border: 1px solid var(--border);
-            border-radius: var(--radius-sm);
-            padding: 16px;
-            margin-bottom: 12px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
         }
-        .page-result-header {
+        .page-diff-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 8px;
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+            background: var(--bg);
         }
-        .page-tag {
-            background: var(--accent-light);
-            color: var(--accent);
+        .page-diff-header .page-label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 600;
+            font-size: .95rem;
+        }
+        .page-diff-header .page-badge {
             padding: 4px 12px;
             border-radius: 20px;
+            font-size: .78rem;
             font-weight: 600;
-            font-size: .8rem;
         }
-        .score-pass { color: var(--success); font-weight: 700; }
-        .score-fail { color: var(--danger); font-weight: 700; }
+        .page-badge.pass { background: var(--success-light); color: var(--success); }
+        .page-badge.fail { background: var(--danger-light); color: var(--danger); }
 
-        /* ================================================================
-           PROGRESS / LOADING SPINNER
-           ================================================================ */
-        .spinner {
-            display: none;
-            width: 20px; height: 20px;
-            border: 2px solid rgba(255,255,255,.3);
-            border-top-color: #fff;
-            border-radius: 50%;
-            animation: spin .6s linear infinite;
+        .page-diff-header .page-meta {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            font-size: .82rem;
+            color: var(--text-secondary);
         }
-        @keyframes spin { to { transform: rotate(360deg); } }
 
-        .progress-bar {
-            display: none;
-            height: 4px;
+        /* Tab navigation for text/image diff */
+        .diff-tabs {
+            display: flex;
+            border-bottom: 1px solid var(--border);
+            background: var(--bg);
+        }
+        .diff-tab {
+            padding: 10px 20px;
+            font-size: .85rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all .15s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: none;
+            border-top: none;
+            border-left: none;
+            border-right: none;
+        }
+        .diff-tab:hover { color: var(--text-primary); }
+        .diff-tab.active {
+            color: var(--accent);
+            border-bottom-color: var(--accent);
+            font-weight: 600;
+        }
+        .diff-tab .tab-count {
             background: var(--border);
-            border-radius: 4px;
-            overflow: hidden;
-            margin-top: 10px;
+            padding: 1px 7px;
+            border-radius: 10px;
+            font-size: .72rem;
+            font-weight: 600;
         }
-        .progress-bar .progress-fill {
-            height: 100%;
-            background: var(--accent);
-            border-radius: 4px;
-            width: 0%;
-            transition: width .3s;
+        .diff-tab.active .tab-count {
+            background: var(--accent-light);
+            color: var(--accent);
         }
 
+        /* Tab content */
+        .diff-tab-content { display: none; }
+        .diff-tab-content.active { display: block; }
+
+        /* GitHub-style side-by-side text diff */
+        .diff-table-wrap {
+            overflow-x: auto;
+        }
+        .diff-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-family: 'JetBrains Mono', 'Courier New', monospace;
+            font-size: .8rem;
+            line-height: 1.6;
+            table-layout: fixed;
+        }
+        .diff-table colgroup col.gutter { width: 52px; }
+        .diff-table colgroup col.content { width: calc(50% - 52px); }
+
+        .diff-table .diff-divider {
+            width: 1px;
+            background: var(--diff-border);
+            padding: 0;
+        }
+
+        .diff-table td {
+            padding: 0 12px;
+            vertical-align: top;
+            white-space: pre-wrap;
+            word-break: break-all;
+            border: none;
+        }
+
+        .diff-table .gutter {
+            background: var(--diff-gutter);
+            color: var(--text-muted);
+            text-align: right;
+            padding: 0 8px;
+            user-select: none;
+            font-size: .75rem;
+            border-right: 1px solid var(--diff-border);
+            width: 52px;
+            min-width: 52px;
+        }
+
+        .diff-table tr.diff-equal td.code { background: var(--card); }
+        .diff-table tr.diff-equal td.gutter { background: var(--diff-gutter); }
+
+        .diff-table tr.diff-delete td.code-left { background: var(--diff-del-bg); color: var(--diff-del-text); }
+        .diff-table tr.diff-delete td.gutter-left { background: var(--diff-gutter-del); }
+        .diff-table tr.diff-delete td.code-right { background: var(--diff-gutter); }
+
+        .diff-table tr.diff-insert td.code-right { background: var(--diff-add-bg); color: var(--diff-add-text); }
+        .diff-table tr.diff-insert td.gutter-right { background: var(--diff-gutter-add); }
+        .diff-table tr.diff-insert td.code-left { background: var(--diff-gutter); }
+
+        .diff-table tr.diff-replace td.code-left { background: var(--diff-del-bg); color: var(--diff-del-text); }
+        .diff-table tr.diff-replace td.gutter-left { background: var(--diff-gutter-del); }
+        .diff-table tr.diff-replace td.code-right { background: var(--diff-add-bg); color: var(--diff-add-text); }
+        .diff-table tr.diff-replace td.gutter-right { background: var(--diff-gutter-add); }
+
+        .diff-table .hl-del {
+            background: var(--diff-del-hl);
+            border-radius: 2px;
+            padding: 0 1px;
+        }
+        .diff-table .hl-add {
+            background: var(--diff-add-hl);
+            border-radius: 2px;
+            padding: 0 1px;
+        }
+
+        /* Diff file header */
+        .diff-file-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 16px;
+            background: var(--diff-gutter);
+            border-bottom: 1px solid var(--diff-border);
+            font-size: .82rem;
+            font-weight: 600;
+        }
+        .diff-file-header .dfh-left { color: var(--danger); }
+        .diff-file-header .dfh-right { color: var(--success); }
+        .diff-stats-inline {
+            display: flex;
+            gap: 8px;
+            font-size: .78rem;
+            font-weight: 500;
+        }
+        .diff-stats-inline .ds-add { color: var(--success); }
+        .diff-stats-inline .ds-del { color: var(--danger); }
+
+        /* Side-by-side image comparison */
+        .image-compare {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0;
+        }
+        .image-compare-panel {
+            padding: 16px;
+            text-align: center;
+            border-right: 1px solid var(--border);
+        }
+        .image-compare-panel:last-child { border-right: none; }
+        .image-compare-panel h5 {
+            font-size: .82rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .image-compare-panel img {
+            max-width: 100%;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow);
+        }
+
+        /* Overlay diff image (full width) */
+        .image-overlay-section {
+            padding: 16px;
+            text-align: center;
+            border-top: 1px solid var(--border);
+        }
+        .image-overlay-section h5 {
+            font-size: .82rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .image-overlay-section img {
+            max-width: 100%;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow);
+        }
+
+        /* AI Insights card */
+        .ai-insights {
+            padding: 16px 20px;
+            border-top: 1px solid var(--border);
+        }
+        .ai-insights h5 {
+            font-size: .88rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: #8B5CF6;
+        }
+        .ai-insight-item {
+            padding: 8px 12px;
+            background: #F5F3FF;
+            border-radius: 8px;
+            margin-bottom: 6px;
+            font-size: .82rem;
+            line-height: 1.5;
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+        }
+        .ai-insight-item .ai-type {
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: .72rem;
+            white-space: nowrap;
+        }
+        .ai-type.added { background: var(--diff-add-bg); color: var(--diff-add-text); }
+        .ai-type.removed { background: var(--diff-del-bg); color: var(--diff-del-text); }
+        .ai-type.modified { background: var(--diff-replace-bg); color: #92400E; }
+        .ai-type.image { background: #EDE9FE; color: #6D28D9; }
+
         /* ================================================================
-           RESPONSIVE (basic)
+           RESPONSIVE
            ================================================================ */
         @media (max-width: 1200px) {
-            :root { --right-w: 280px; }
+            .result-stats { grid-template-columns: repeat(3, 1fr); }
         }
         @media (max-width: 1000px) {
             .sidebar { display: none; }
             .main { margin-left: 0; }
         }
-        @media (max-width: 800px) {
-            .right-sidebar { display: none; }
-            .main { margin-right: 0; }
+        @media (max-width: 768px) {
+            .upload-grid { grid-template-columns: 1fr; }
+            .image-compare { grid-template-columns: 1fr; }
+            .result-stats { grid-template-columns: repeat(2, 1fr); }
         }
     </style>
 </head>
@@ -674,24 +924,28 @@
     </div>
 
     <nav class="sidebar-nav">
-        <a href="#" class="nav-item active">
+        <a class="nav-item active" data-view="dashboard" onclick="switchView('dashboard')">
             <i data-lucide="layout-dashboard" style="width:18px; height:18px;"></i>
-            Home
+            Dashboard
         </a>
-        <a href="#" class="nav-item" onclick="document.getElementById('dropZone').click()">
+        <a class="nav-item" data-view="compare" onclick="switchView('compare')">
             <i data-lucide="git-compare" style="width:18px; height:18px;"></i>
             Compare
             <span class="badge">+</span>
         </a>
-        <a href="#" class="nav-item">
+        <a class="nav-item" data-view="results" onclick="switchView('results')" id="navResults" style="display:none;">
+            <i data-lucide="split" style="width:18px; height:18px;"></i>
+            Results
+        </a>
+        <a class="nav-item">
             <i data-lucide="history" style="width:18px; height:18px;"></i>
             History
         </a>
-        <a href="#" class="nav-item">
+        <a class="nav-item">
             <i data-lucide="file-bar-chart" style="width:18px; height:18px;"></i>
             Reports
         </a>
-        <a href="#" class="nav-item">
+        <a class="nav-item">
             <i data-lucide="settings" style="width:18px; height:18px;"></i>
             Settings
         </a>
@@ -704,11 +958,11 @@
     </div>
 
     <div class="sidebar-footer">
-        <a href="#" class="nav-item">
+        <a class="nav-item">
             <i data-lucide="help-circle" style="width:18px; height:18px;"></i>
             Help &amp; information
         </a>
-        <a href="#" class="nav-item">
+        <a class="nav-item">
             <i data-lucide="log-out" style="width:18px; height:18px;"></i>
             Log out
         </a>
@@ -723,8 +977,8 @@
     <!-- Header -->
     <div class="header">
         <div>
-            <h1>Hello, User</h1>
-            <p class="subtitle">Compare PDFs and track differences. Your AI-powered document QA tool.</p>
+            <h1 id="pageTitle">Dashboard</h1>
+            <p class="subtitle" id="pageSubtitle">Compare PDFs and track differences. Your AI-powered document QA tool.</p>
         </div>
         <div class="header-right">
             <div class="date-badge">
@@ -734,222 +988,219 @@
         </div>
     </div>
 
-    <!-- Stats Row -->
-    <div class="stats-row">
-        <div class="stat-card">
-            <div class="stat-icon blue">
-                <i data-lucide="files" style="width:22px; height:22px;"></i>
+    <!-- ==================== DASHBOARD VIEW ==================== -->
+    <div class="view active" id="view-dashboard">
+
+        <!-- Stats Row -->
+        <div class="stats-row">
+            <div class="stat-card">
+                <div class="stat-icon blue">
+                    <i data-lucide="files" style="width:22px; height:22px;"></i>
+                </div>
+                <div class="stat-info">
+                    <div class="stat-label">Comparisons</div>
+                    <div class="stat-value" id="statTotal">0</div>
+                    <div class="stat-change up">
+                        <i data-lucide="trending-up" style="width:14px; height:14px;"></i>
+                        Ready
+                    </div>
+                </div>
             </div>
-            <div class="stat-info">
-                <div class="stat-label">Comparisons</div>
-                <div class="stat-value" id="statTotal">0</div>
-                <div class="stat-change up">
-                    <i data-lucide="trending-up" style="width:14px; height:14px;"></i>
-                    Ready
+            <div class="stat-card">
+                <div class="stat-icon green">
+                    <i data-lucide="check-circle" style="width:22px; height:22px;"></i>
+                </div>
+                <div class="stat-info">
+                    <div class="stat-label">Matches</div>
+                    <div class="stat-value" id="statMatches">0</div>
+                    <div class="stat-change up">
+                        <i data-lucide="trending-up" style="width:14px; height:14px;"></i>
+                        Identical pages
+                    </div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon red">
+                    <i data-lucide="alert-triangle" style="width:22px; height:22px;"></i>
+                </div>
+                <div class="stat-info">
+                    <div class="stat-label">Differences</div>
+                    <div class="stat-value" id="statDiffs">0</div>
+                    <div class="stat-change down">
+                        <i data-lucide="trending-down" style="width:14px; height:14px;"></i>
+                        Pages with changes
+                    </div>
                 </div>
             </div>
         </div>
-        <div class="stat-card">
-            <div class="stat-icon green">
-                <i data-lucide="check-circle" style="width:22px; height:22px;"></i>
+
+        <!-- Performance Chart -->
+        <div class="chart-card">
+            <div class="chart-header">
+                <h3>Performance</h3>
+                <select class="period-select">
+                    <option>Last 7 comparisons</option>
+                    <option>Last 30 comparisons</option>
+                </select>
             </div>
-            <div class="stat-info">
-                <div class="stat-label">Matches</div>
-                <div class="stat-value" id="statMatches">0</div>
-                <div class="stat-change up">
-                    <i data-lucide="trending-up" style="width:14px; height:14px;"></i>
-                    Identical pages
-                </div>
+            <div class="chart-container">
+                <canvas id="perfChart"></canvas>
             </div>
         </div>
-        <div class="stat-card">
-            <div class="stat-icon red">
-                <i data-lucide="alert-triangle" style="width:22px; height:22px;"></i>
+
+        <!-- Recent Comparisons -->
+        <div class="tasks-section">
+            <div class="tasks-header">
+                <h3>Recent Comparisons</h3>
+                <span class="done-tag" id="doneTag">No results yet</span>
             </div>
-            <div class="stat-info">
-                <div class="stat-label">Differences</div>
-                <div class="stat-value" id="statDiffs">0</div>
-                <div class="stat-change down">
-                    <i data-lucide="trending-down" style="width:14px; height:14px;"></i>
-                    Pages with changes
+            <div id="tasksList">
+                <div class="task-item">
+                    <div class="task-icon purple">
+                        <i data-lucide="file-text" style="width:20px; height:20px;"></i>
+                    </div>
+                    <div class="task-info">
+                        <div class="task-name">Upload PDFs to begin</div>
+                        <div class="task-sub">Go to Compare tab to upload two PDF files</div>
+                    </div>
+                    <div class="task-status">
+                        <div class="status-dot orange"></div>
+                        Waiting
+                    </div>
+                    <div class="task-time">--</div>
+                    <div class="task-menu">
+                        <i data-lucide="more-horizontal" style="width:18px; height:18px;"></i>
+                    </div>
+                </div>
+                <div class="task-item">
+                    <div class="task-icon pink">
+                        <i data-lucide="scan-search" style="width:20px; height:20px;"></i>
+                    </div>
+                    <div class="task-info">
+                        <div class="task-name">AI-Powered Analysis</div>
+                        <div class="task-sub">Semantic text comparison via Groq LLM</div>
+                    </div>
+                    <div class="task-status">
+                        <div class="status-dot orange"></div>
+                        On hold
+                    </div>
+                    <div class="task-time">--</div>
+                    <div class="task-menu">
+                        <i data-lucide="more-horizontal" style="width:18px; height:18px;"></i>
+                    </div>
+                </div>
+                <div class="task-item">
+                    <div class="task-icon blue">
+                        <i data-lucide="bar-chart-3" style="width:20px; height:20px;"></i>
+                    </div>
+                    <div class="task-info">
+                        <div class="task-name">Visual Diff Report</div>
+                        <div class="task-sub">Page-by-page image overlay generation</div>
+                    </div>
+                    <div class="task-status">
+                        <div class="status-dot orange"></div>
+                        On hold
+                    </div>
+                    <div class="task-time">--</div>
+                    <div class="task-menu">
+                        <i data-lucide="more-horizontal" style="width:18px; height:18px;"></i>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Performance Chart -->
-    <div class="chart-card">
-        <div class="chart-header">
-            <h3>Performance</h3>
-            <select class="period-select">
-                <option>Last 7 comparisons</option>
-                <option>Last 30 comparisons</option>
-            </select>
-        </div>
-        <div class="chart-container">
-            <canvas id="perfChart"></canvas>
+    <!-- ==================== COMPARE VIEW ==================== -->
+    <div class="view" id="view-compare">
+        <div class="compare-container">
+
+            <!-- Upload Section -->
+            <div class="upload-section">
+                <h3>Upload PDFs for Comparison</h3>
+                <p class="upload-subtitle">Upload the original and revised PDF documents. We'll perform text, visual, and AI-powered analysis.</p>
+
+                <div class="upload-grid">
+                    <!-- Original PDF -->
+                    <div class="upload-box" id="dropOriginal" onclick="document.getElementById('fileOriginal').click()">
+                        <div class="upload-box-icon original">
+                            <i data-lucide="file-minus" style="width:24px; height:24px;"></i>
+                        </div>
+                        <h4>Original PDF</h4>
+                        <p>Drop your <strong>original</strong> document here<br/>or <span class="browse-link">browse files</span></p>
+                        <div id="fileInfoOriginal"></div>
+                    </div>
+                    <input type="file" id="fileOriginal" accept=".pdf" hidden />
+
+                    <!-- Revised PDF -->
+                    <div class="upload-box" id="dropRevised" onclick="document.getElementById('fileRevised').click()">
+                        <div class="upload-box-icon revised">
+                            <i data-lucide="file-plus" style="width:24px; height:24px;"></i>
+                        </div>
+                        <h4>Revised PDF</h4>
+                        <p>Drop your <strong>revised</strong> document here<br/>or <span class="browse-link">browse files</span></p>
+                        <div id="fileInfoRevised"></div>
+                    </div>
+                    <input type="file" id="fileRevised" accept=".pdf" hidden />
+                </div>
+
+                <div class="compare-actions">
+                    <button class="btn-compare" id="compareBtn" disabled onclick="runCompare()">
+                        <i data-lucide="play" style="width:18px; height:18px;"></i>
+                        <span id="compareBtnText">Compare PDFs</span>
+                        <div class="spinner" id="spinner"></div>
+                    </button>
+                    <button class="btn-reset" onclick="resetUpload()">
+                        <i data-lucide="refresh-cw" style="width:16px; height:16px;"></i>
+                        Reset
+                    </button>
+                </div>
+
+                <div class="progress-bar" id="progressBar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+            </div>
+
+            <!-- Activity Feed -->
+            <div class="activity-section">
+                <h3>Activity Log</h3>
+
+                <div class="activity-item">
+                    <div class="activity-avatar" style="background: #6366F1;">SY</div>
+                    <div class="activity-content">
+                        <div class="act-header">
+                            <span class="act-name">System</span>
+                            <span class="act-time">Now</span>
+                        </div>
+                        <div class="act-desc">Application ready. Upload two PDFs to start comparison.</div>
+                    </div>
+                </div>
+
+                <div class="activity-item">
+                    <div class="activity-avatar" style="background: #EC4899;">AI</div>
+                    <div class="activity-content">
+                        <div class="act-header">
+                            <span class="act-name">Groq AI</span>
+                            <span class="act-time">--</span>
+                        </div>
+                        <div class="msg-bubble">
+                            Upload two PDFs and I'll analyze the semantic, visual, and image-level differences for you. Results appear in a GitHub-style side-by-side diff view.
+                        </div>
+                    </div>
+                </div>
+
+                <div id="activityFeed"></div>
+            </div>
         </div>
     </div>
 
-    <!-- Recent Comparisons -->
-    <div class="tasks-section">
-        <div class="tasks-header">
-            <h3>Recent Comparisons</h3>
-            <span class="done-tag" id="doneTag">No results yet</span>
-        </div>
-
-        <div id="tasksList">
-            <!-- Placeholder tasks -->
-            <div class="task-item">
-                <div class="task-icon purple">
-                    <i data-lucide="file-text" style="width:20px; height:20px;"></i>
-                </div>
-                <div class="task-info">
-                    <div class="task-name">Upload PDFs to begin</div>
-                    <div class="task-sub">Use the panel on the right to upload two PDF files</div>
-                </div>
-                <div class="task-status">
-                    <div class="status-dot orange"></div>
-                    Waiting
-                </div>
-                <div class="task-time">--</div>
-                <div class="task-menu">
-                    <i data-lucide="more-horizontal" style="width:18px; height:18px;"></i>
-                </div>
-            </div>
-            <div class="task-item">
-                <div class="task-icon pink">
-                    <i data-lucide="scan-search" style="width:20px; height:20px;"></i>
-                </div>
-                <div class="task-info">
-                    <div class="task-name">AI-Powered Analysis</div>
-                    <div class="task-sub">Semantic text comparison via Groq LLM</div>
-                </div>
-                <div class="task-status">
-                    <div class="status-dot orange"></div>
-                    On hold
-                </div>
-                <div class="task-time">--</div>
-                <div class="task-menu">
-                    <i data-lucide="more-horizontal" style="width:18px; height:18px;"></i>
-                </div>
-            </div>
-            <div class="task-item">
-                <div class="task-icon blue">
-                    <i data-lucide="bar-chart-3" style="width:20px; height:20px;"></i>
-                </div>
-                <div class="task-info">
-                    <div class="task-name">Visual Diff Report</div>
-                    <div class="task-sub">Page-by-page image overlay generation</div>
-                </div>
-                <div class="task-status">
-                    <div class="status-dot orange"></div>
-                    On hold
-                </div>
-                <div class="task-time">--</div>
-                <div class="task-menu">
-                    <i data-lucide="more-horizontal" style="width:18px; height:18px;"></i>
-                </div>
-            </div>
+    <!-- ==================== RESULTS VIEW ==================== -->
+    <div class="view" id="view-results">
+        <div class="results-container" id="resultsContainer">
+            <!-- Dynamically populated -->
         </div>
     </div>
 
 </main>
-
-<!-- ============================================================
-     RIGHT SIDEBAR
-     ============================================================ -->
-<aside class="right-sidebar">
-
-    <!-- Upload Panel -->
-    <div class="upload-panel">
-        <div class="upload-avatar">
-            <i data-lucide="upload-cloud" style="width:32px; height:32px;"></i>
-            <div class="status-badge"></div>
-        </div>
-        <h4>PDF Compare</h4>
-        <p class="handle">Upload & Analyze</p>
-
-        <div class="upload-actions">
-            <button title="New Comparison" onclick="resetUpload()">
-                <i data-lucide="plus" style="width:16px; height:16px;"></i>
-            </button>
-            <button title="Download Report" id="downloadBtn" disabled onclick="downloadReport()">
-                <i data-lucide="download" style="width:16px; height:16px;"></i>
-            </button>
-            <button title="More Options">
-                <i data-lucide="more-vertical" style="width:16px; height:16px;"></i>
-            </button>
-        </div>
-    </div>
-
-    <!-- Upload area -->
-    <div class="drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
-        <i data-lucide="upload" style="width:24px; height:24px;"></i>
-        <p>Drop your <strong>Original</strong> &amp; <strong>Revised</strong> PDFs here<br/>or <span class="browse">browse files</span></p>
-    </div>
-    <input type="file" id="fileInput" accept=".pdf" multiple hidden />
-
-    <div id="fileList"></div>
-
-    <button class="btn-compare" id="compareBtn" disabled onclick="runCompare()">
-        <i data-lucide="play" style="width:18px; height:18px;"></i>
-        <span id="compareBtnText">Compare PDFs</span>
-        <div class="spinner" id="spinner"></div>
-    </button>
-    <div class="progress-bar" id="progressBar">
-        <div class="progress-fill" id="progressFill"></div>
-    </div>
-
-    <!-- Activity Feed -->
-    <div class="activity-section">
-        <h4>Activity</h4>
-
-        <div class="activity-item">
-            <div class="activity-avatar" style="background: #6366F1;">SY</div>
-            <div class="activity-content">
-                <div class="act-header">
-                    <span class="act-name">System</span>
-                    <span class="act-time">Now</span>
-                </div>
-                <div class="act-desc">Application ready</div>
-            </div>
-        </div>
-
-        <div class="activity-item">
-            <div class="activity-avatar" style="background: #EC4899;">AI</div>
-            <div class="activity-content">
-                <div class="act-header">
-                    <span class="act-name">Groq AI</span>
-                    <span class="act-time">--</span>
-                </div>
-                <div class="msg-bubble">
-                    Upload two PDFs and I'll analyze the semantic and visual differences for you.
-                </div>
-            </div>
-        </div>
-
-        <div id="activityFeed"></div>
-    </div>
-
-</aside>
-
-<!-- ============================================================
-     RESULTS MODAL
-     ============================================================ -->
-<div class="modal-overlay" id="resultModal">
-    <div class="modal-content">
-        <button class="modal-close" onclick="closeModal()">
-            <i data-lucide="x" style="width:18px; height:18px;"></i>
-        </button>
-        <div class="result-header">
-            <h2>Comparison Results</h2>
-            <p id="resultSubtitle">Page-level analysis complete</p>
-        </div>
-        <div class="result-stats" id="resultStats"></div>
-        <div id="resultPages"></div>
-    </div>
-</div>
 
 <!-- ============================================================
      SCRIPTS
@@ -1021,79 +1272,147 @@
         }
     });
 
-    // --- File Upload Logic ---
-    let files = [];
+    // ================================================================
+    // VIEW SWITCHING
+    // ================================================================
+    const viewTitles = {
+        dashboard: { title: 'Dashboard', subtitle: 'Compare PDFs and track differences. Your AI-powered document QA tool.' },
+        compare: { title: 'Compare PDFs', subtitle: 'Upload original and revised documents for side-by-side analysis.' },
+        results: { title: 'Comparison Results', subtitle: 'Side-by-side text diff and visual comparison.' },
+    };
 
-    const dropZone = document.getElementById('dropZone');
-    const fileInput = document.getElementById('fileInput');
-    const fileList = document.getElementById('fileList');
+    function switchView(viewName) {
+        // Hide all views
+        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+        // Show target view
+        const target = document.getElementById('view-' + viewName);
+        if (target) target.classList.add('active');
+
+        // Update nav
+        document.querySelectorAll('.nav-item[data-view]').forEach(n => n.classList.remove('active'));
+        const navItem = document.querySelector(`.nav-item[data-view="${viewName}"]`);
+        if (navItem) navItem.classList.add('active');
+
+        // Update header
+        const info = viewTitles[viewName] || viewTitles.dashboard;
+        document.getElementById('pageTitle').textContent = info.title;
+        document.getElementById('pageSubtitle').textContent = info.subtitle;
+
+        lucide.createIcons();
+    }
+
+    // ================================================================
+    // FILE UPLOAD LOGIC
+    // ================================================================
+    let originalFile = null;
+    let revisedFile = null;
+
+    const dropOriginal = document.getElementById('dropOriginal');
+    const dropRevised = document.getElementById('dropRevised');
+    const fileOriginal = document.getElementById('fileOriginal');
+    const fileRevised = document.getElementById('fileRevised');
     const compareBtn = document.getElementById('compareBtn');
 
-    dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('dragover'); });
-    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
-    dropZone.addEventListener('drop', (e) => {
+    // Drag & Drop for Original
+    dropOriginal.addEventListener('dragover', (e) => { e.preventDefault(); dropOriginal.classList.add('dragover'); });
+    dropOriginal.addEventListener('dragleave', () => dropOriginal.classList.remove('dragover'));
+    dropOriginal.addEventListener('drop', (e) => {
         e.preventDefault();
-        dropZone.classList.remove('dragover');
-        handleFiles(e.dataTransfer.files);
+        dropOriginal.classList.remove('dragover');
+        const f = Array.from(e.dataTransfer.files).find(f =>
+            f.name.toLowerCase().endsWith('.pdf') || f.type === 'application/pdf');
+        if (f) { originalFile = f; renderUploadBoxes(); }
     });
 
-    fileInput.addEventListener('change', (e) => handleFiles(e.target.files));
+    // Drag & Drop for Revised
+    dropRevised.addEventListener('dragover', (e) => { e.preventDefault(); dropRevised.classList.add('dragover'); });
+    dropRevised.addEventListener('dragleave', () => dropRevised.classList.remove('dragover'));
+    dropRevised.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropRevised.classList.remove('dragover');
+        const f = Array.from(e.dataTransfer.files).find(f =>
+            f.name.toLowerCase().endsWith('.pdf') || f.type === 'application/pdf');
+        if (f) { revisedFile = f; renderUploadBoxes(); }
+    });
 
-    function handleFiles(newFiles) {
-        for (const f of newFiles) {
-            // Accept by extension OR MIME type (macOS drag-drop can report empty type)
-            const isPdf = f.name.toLowerCase().endsWith('.pdf') ||
-                          f.type === 'application/pdf';
-            if (isPdf && files.length < 2) {
-                files.push(f);
-            }
-        }
-        renderFiles();
-    }
+    fileOriginal.addEventListener('change', (e) => {
+        if (e.target.files[0]) { originalFile = e.target.files[0]; renderUploadBoxes(); }
+    });
+    fileRevised.addEventListener('change', (e) => {
+        if (e.target.files[0]) { revisedFile = e.target.files[0]; renderUploadBoxes(); }
+    });
 
-    function renderFiles() {
-        fileList.innerHTML = '';
-        files.forEach((f, i) => {
-            const label = i === 0 ? 'Original' : 'Revised';
-            const size = (f.size / 1024).toFixed(1) + ' KB';
-            fileList.innerHTML += `
-                <div class="file-tag">
-                    <i data-lucide="file-text" style="width:16px; height:16px; color: var(--accent);"></i>
-                    <span class="fname">${label}: ${f.name}</span>
-                    <span class="fsize">${size}</span>
-                    <span class="remove-file" onclick="removeFile(${i})">
-                        <i data-lucide="x" style="width:14px; height:14px;"></i>
+    function renderUploadBoxes() {
+        // Original
+        const origInfo = document.getElementById('fileInfoOriginal');
+        if (originalFile) {
+            dropOriginal.classList.add('has-file');
+            const size = (originalFile.size / 1024).toFixed(1) + ' KB';
+            origInfo.innerHTML = `
+                <div class="file-info" onclick="event.stopPropagation();">
+                    <span class="fi-icon"><i data-lucide="file-text" style="width:16px;height:16px;"></i></span>
+                    <span class="fi-name">${originalFile.name}</span>
+                    <span class="fi-size">${size}</span>
+                    <span class="fi-remove" onclick="removeOriginal(event)">
+                        <i data-lucide="x" style="width:14px;height:14px;"></i>
                     </span>
                 </div>`;
-        });
-        lucide.createIcons();
-        compareBtn.disabled = files.length < 2;
-
-        if (files.length < 2) {
-            dropZone.style.display = 'block';
         } else {
-            dropZone.style.display = 'none';
+            dropOriginal.classList.remove('has-file');
+            origInfo.innerHTML = '';
         }
+
+        // Revised
+        const revInfo = document.getElementById('fileInfoRevised');
+        if (revisedFile) {
+            dropRevised.classList.add('has-file');
+            const size = (revisedFile.size / 1024).toFixed(1) + ' KB';
+            revInfo.innerHTML = `
+                <div class="file-info" onclick="event.stopPropagation();">
+                    <span class="fi-icon"><i data-lucide="file-text" style="width:16px;height:16px;"></i></span>
+                    <span class="fi-name">${revisedFile.name}</span>
+                    <span class="fi-size">${size}</span>
+                    <span class="fi-remove" onclick="removeRevised(event)">
+                        <i data-lucide="x" style="width:14px;height:14px;"></i>
+                    </span>
+                </div>`;
+        } else {
+            dropRevised.classList.remove('has-file');
+            revInfo.innerHTML = '';
+        }
+
+        compareBtn.disabled = !(originalFile && revisedFile);
+        lucide.createIcons();
     }
 
-    function removeFile(idx) {
-        files.splice(idx, 1);
-        renderFiles();
+    function removeOriginal(e) {
+        e.stopPropagation();
+        originalFile = null;
+        fileOriginal.value = '';
+        renderUploadBoxes();
+    }
+    function removeRevised(e) {
+        e.stopPropagation();
+        revisedFile = null;
+        fileRevised.value = '';
+        renderUploadBoxes();
     }
 
     function resetUpload() {
-        files = [];
-        fileInput.value = '';
-        renderFiles();
-        dropZone.style.display = 'block';
-        document.getElementById('downloadBtn').disabled = true;
+        originalFile = null;
+        revisedFile = null;
+        fileOriginal.value = '';
+        fileRevised.value = '';
+        renderUploadBoxes();
     }
 
-    // --- Run Comparison ---
+    // ================================================================
+    // RUN COMPARISON
+    // ================================================================
     let lastResult = null;
 
     async function runCompare() {
-        if (files.length < 2) return;
+        if (!originalFile || !revisedFile) return;
 
         const btn = document.getElementById('compareBtn');
         const btnText = document.getElementById('compareBtnText');
@@ -1110,19 +1429,19 @@
         // Simulate progress
         let progress = 0;
         const progressInterval = setInterval(() => {
-            progress = Math.min(progress + Math.random() * 15, 90);
+            progress = Math.min(progress + Math.random() * 12, 90);
             progressFill.style.width = progress + '%';
-        }, 400);
-
-        // Update task statuses in UI
-        updateTaskStatus(0, 'In progress', 'red');
-        updateTaskStatus(1, 'In progress', 'red');
+        }, 500);
 
         addActivity('SY', '#6366F1', 'System', 'Uploading & processing PDFs...');
 
+        // Update dashboard task statuses
+        updateTaskStatus(0, 'In progress', 'red');
+        updateTaskStatus(1, 'In progress', 'red');
+
         const formData = new FormData();
-        formData.append('original', files[0]);
-        formData.append('revised', files[1]);
+        formData.append('original', originalFile);
+        formData.append('revised', revisedFile);
 
         try {
             const resp = await fetch('/api/compare', {
@@ -1141,7 +1460,7 @@
             const data = await resp.json();
             lastResult = data;
 
-            // Update stats
+            // Update dashboard stats
             const total = data.total_pages || 0;
             const passed = data.pages ? data.pages.filter(p => p.status === 'PASS').length : 0;
             const failed = total - passed;
@@ -1151,7 +1470,7 @@
             document.getElementById('statDiffs').textContent = failed;
             document.getElementById('doneTag').textContent = `Done ${Math.round((passed/total)*100)}%`;
 
-            // Update tasks
+            // Update dashboard tasks
             updateTaskStatus(0, 'Done', 'green');
             updateTaskStatus(1, 'Done', 'green');
             updateTaskStatus(2, 'Done', 'green');
@@ -1159,14 +1478,15 @@
             addActivity('AI', '#EC4899', 'Groq AI',
                 `Analysis complete: ${data.overall?.overall_change || 'N/A'} changes detected. Confidence: ${((data.overall?.confidence || 0) * 100).toFixed(0)}%`);
 
-            // Update chart with real data
+            // Update chart
             updateChart(data);
 
-            // Enable download
-            document.getElementById('downloadBtn').disabled = false;
+            // Show results nav item
+            document.getElementById('navResults').style.display = 'flex';
 
-            // Show results modal
-            showResults(data);
+            // Render results and switch to results view
+            renderResults(data);
+            switchView('results');
 
         } catch (err) {
             clearInterval(progressInterval);
@@ -1220,11 +1540,17 @@
         perfChart.update();
     }
 
-    // --- Results Modal ---
-    function showResults(data) {
-        const modal = document.getElementById('resultModal');
-        const statsEl = document.getElementById('resultStats');
-        const pagesEl = document.getElementById('resultPages');
+    // ================================================================
+    // RENDER RESULTS — GitHub-style diff
+    // ================================================================
+    function escapeHtml(str) {
+        const div = document.createElement('div');
+        div.appendChild(document.createTextNode(str));
+        return div.innerHTML;
+    }
+
+    function renderResults(data) {
+        const container = document.getElementById('resultsContainer');
 
         const total = data.total_pages || 0;
         const pages = data.pages || [];
@@ -1233,65 +1559,268 @@
         const avgConf = pages.length > 0
             ? (pages.reduce((s, p) => s + (p.confidence || 0), 0) / pages.length * 100).toFixed(1)
             : '0';
+        const avgSim = pages.length > 0
+            ? (pages.reduce((s, p) => s + (p.image_similarity || 0), 0) / pages.length * 100).toFixed(1)
+            : '0';
+        const totalTextChanges = pages.reduce((s, p) => s + (p.text_changes_count || 0), 0);
 
-        statsEl.innerHTML = `
-            <div class="r-stat"><div class="r-val">${total}</div><div class="r-lbl">Total Pages</div></div>
-            <div class="r-stat"><div class="r-val" style="color:var(--success);">${passed}</div><div class="r-lbl">Matches</div></div>
-            <div class="r-stat"><div class="r-val" style="color:var(--danger);">${failed}</div><div class="r-lbl">Differences</div></div>
-            <div class="r-stat"><div class="r-val">${avgConf}%</div><div class="r-lbl">AI Confidence</div></div>`;
+        let html = `
+        <!-- Summary -->
+        <div class="result-summary">
+            <div class="result-summary-top">
+                <h3>
+                    <i data-lucide="git-compare" style="width:20px;height:20px;display:inline;vertical-align:middle;margin-right:6px;"></i>
+                    ${escapeHtml(data.original_name || 'Original')} vs ${escapeHtml(data.revised_name || 'Revised')}
+                </h3>
+                <div class="result-actions">
+                    <button onclick="switchView('compare')">
+                        <i data-lucide="plus" style="width:14px;height:14px;"></i>
+                        New Comparison
+                    </button>
+                </div>
+            </div>
+            <div class="result-stats">
+                <div class="r-stat"><div class="r-val">${total}</div><div class="r-lbl">Total Pages</div></div>
+                <div class="r-stat"><div class="r-val" style="color:var(--success);">${passed}</div><div class="r-lbl">Matches</div></div>
+                <div class="r-stat"><div class="r-val" style="color:var(--danger);">${failed}</div><div class="r-lbl">Differences</div></div>
+                <div class="r-stat"><div class="r-val">${avgConf}%</div><div class="r-lbl">AI Confidence</div></div>
+                <div class="r-stat"><div class="r-val">${totalTextChanges}</div><div class="r-lbl">Text Changes</div></div>
+            </div>
+        </div>`;
 
-        pagesEl.innerHTML = '';
-        pages.forEach(p => {
+        // Per-page diffs
+        pages.forEach((p, pageIdx) => {
             const isPass = p.status === 'PASS';
-            const changes = p.text_changes || [];
-            let changesHtml = '';
-            if (changes.length > 0) {
-                changesHtml = '<div style="margin-top:8px;">';
-                changes.forEach(c => {
-                    changesHtml += `<div style="font-size:.82rem; padding:6px 0; border-top:1px solid var(--border);">
-                        <strong>${c.type}</strong>:
-                        <span style="color:var(--danger); text-decoration: line-through;">${c.original || ''}</span>
-                        <span style="color:var(--success);">${c.revised || ''}</span>
-                    </div>`;
-                });
-                changesHtml += '</div>';
-            }
+            const lineDiff = p.line_diff || [];
+            const changesCount = p.text_changes_count || 0;
+            const addCount = lineDiff.filter(d => d.type === 'insert').length;
+            const delCount = lineDiff.filter(d => d.type === 'delete').length;
+            const replaceCount = lineDiff.filter(d => d.type === 'replace').length;
+            const uniqueId = 'page_' + p.page;
 
-            pagesEl.innerHTML += `
-                <div class="page-result">
-                    <div class="page-result-header">
-                        <span class="page-tag">Page ${p.page}</span>
-                        <span class="${isPass ? 'score-pass' : 'score-fail'}">
-                            ${(p.image_similarity * 100).toFixed(1)}% — ${p.status}
-                        </span>
+            // AI insights
+            const aiTextChanges = p.ai_text_changes || [];
+            const aiImageChanges = p.ai_image_changes || [];
+
+            html += `
+            <div class="page-diff-section">
+                <div class="page-diff-header">
+                    <div class="page-label">
+                        <i data-lucide="file-text" style="width:16px;height:16px;"></i>
+                        Page ${p.page}
+                        <span class="page-badge ${isPass ? 'pass' : 'fail'}">${p.status}</span>
                     </div>
-                    ${changesHtml || '<p style="font-size:.82rem; color:var(--text-muted);">No text changes detected</p>'}
-                </div>`;
+                    <div class="page-meta">
+                        <span>Similarity: <strong>${(p.image_similarity * 100).toFixed(1)}%</strong></span>
+                        <span>Changes: <strong>${changesCount}</strong></span>
+                    </div>
+                </div>
+
+                <!-- Tabs -->
+                <div class="diff-tabs">
+                    <button class="diff-tab active" onclick="switchDiffTab('${uniqueId}', 'text', this)">
+                        <i data-lucide="code-2" style="width:14px;height:14px;"></i>
+                        Text Diff
+                        <span class="tab-count">${changesCount}</span>
+                    </button>
+                    <button class="diff-tab" onclick="switchDiffTab('${uniqueId}', 'images', this)">
+                        <i data-lucide="image" style="width:14px;height:14px;"></i>
+                        Visual Diff
+                    </button>
+                    ${(aiTextChanges.length > 0 || aiImageChanges.length > 0) ? `
+                    <button class="diff-tab" onclick="switchDiffTab('${uniqueId}', 'ai', this)">
+                        <i data-lucide="sparkles" style="width:14px;height:14px;"></i>
+                        AI Insights
+                        <span class="tab-count">${aiTextChanges.length + aiImageChanges.length}</span>
+                    </button>` : ''}
+                </div>
+
+                <!-- Text Diff Tab -->
+                <div class="diff-tab-content active" id="${uniqueId}_text">
+                    ${renderTextDiff(lineDiff, addCount, delCount, replaceCount, data.original_name, data.revised_name)}
+                </div>
+
+                <!-- Images Tab -->
+                <div class="diff-tab-content" id="${uniqueId}_images">
+                    ${renderImageDiff(p)}
+                </div>
+
+                <!-- AI Insights Tab -->
+                ${(aiTextChanges.length > 0 || aiImageChanges.length > 0) ? `
+                <div class="diff-tab-content" id="${uniqueId}_ai">
+                    ${renderAIInsights(aiTextChanges, aiImageChanges)}
+                </div>` : ''}
+            </div>`;
         });
 
-        modal.classList.add('active');
+        container.innerHTML = html;
         lucide.createIcons();
     }
 
-    function closeModal() {
-        document.getElementById('resultModal').classList.remove('active');
+    function switchDiffTab(pageId, tabName, el) {
+        // Hide all tab contents for this page
+        const section = el.closest('.page-diff-section');
+        section.querySelectorAll('.diff-tab-content').forEach(c => c.classList.remove('active'));
+        section.querySelectorAll('.diff-tab').forEach(t => t.classList.remove('active'));
+
+        // Show selected
+        const target = document.getElementById(pageId + '_' + tabName);
+        if (target) target.classList.add('active');
+        el.classList.add('active');
     }
 
-    // Close modal on overlay click
-    document.getElementById('resultModal').addEventListener('click', (e) => {
-        if (e.target === e.currentTarget) closeModal();
-    });
+    function renderTextDiff(lineDiff, addCount, delCount, replaceCount, origName, revName) {
+        if (!lineDiff || lineDiff.length === 0) {
+            return '<div style="padding:24px;text-align:center;color:var(--text-muted);font-size:.88rem;">No text content to compare on this page.</div>';
+        }
 
-    // Escape to close
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') closeModal();
-    });
+        const allEqual = lineDiff.every(d => d.type === 'equal');
+        if (allEqual) {
+            return `<div style="padding:24px;text-align:center;color:var(--success);font-size:.88rem;">
+                <i data-lucide="check-circle" style="width:18px;height:18px;display:inline;vertical-align:middle;margin-right:6px;"></i>
+                Text content is identical. No differences found.
+            </div>`;
+        }
 
-    // --- Download placeholder ---
-    function downloadReport() {
-        if (!lastResult) return;
-        // In a real app, this would call an endpoint to download the PDF report
-        alert('PDF report download coming soon. Use the Streamlit UI for full report generation.');
+        let html = `
+            <div class="diff-file-header">
+                <div class="diff-stats-inline">
+                    <span class="ds-add">+${addCount + replaceCount} additions</span>
+                    <span class="ds-del">-${delCount + replaceCount} deletions</span>
+                </div>
+                <div style="display:flex;gap:16px;font-size:.78rem;">
+                    <span class="dfh-left">${escapeHtml(origName || 'Original')}</span>
+                    <span class="dfh-right">${escapeHtml(revName || 'Revised')}</span>
+                </div>
+            </div>
+            <div class="diff-table-wrap">
+            <table class="diff-table">
+                <colgroup>
+                    <col class="gutter"><col class="content">
+                    <col style="width:1px;">
+                    <col class="gutter"><col class="content">
+                </colgroup>
+                <tbody>`;
+
+        lineDiff.forEach(d => {
+            const leftNum = d.left_line_no !== null ? d.left_line_no : '';
+            const rightNum = d.right_line_no !== null ? d.right_line_no : '';
+            const leftText = escapeHtml(d.left_content || '');
+            const rightText = escapeHtml(d.right_content || '');
+
+            if (d.type === 'equal') {
+                html += `<tr class="diff-equal">
+                    <td class="gutter gutter-left">${leftNum}</td>
+                    <td class="code code-left">${leftText}</td>
+                    <td class="diff-divider"></td>
+                    <td class="gutter gutter-right">${rightNum}</td>
+                    <td class="code code-right">${rightText}</td>
+                </tr>`;
+            } else if (d.type === 'delete') {
+                html += `<tr class="diff-delete">
+                    <td class="gutter gutter-left">${leftNum}</td>
+                    <td class="code code-left">${leftText}</td>
+                    <td class="diff-divider"></td>
+                    <td class="gutter gutter-right"></td>
+                    <td class="code code-right"></td>
+                </tr>`;
+            } else if (d.type === 'insert') {
+                html += `<tr class="diff-insert">
+                    <td class="gutter gutter-left"></td>
+                    <td class="code code-left"></td>
+                    <td class="diff-divider"></td>
+                    <td class="gutter gutter-right">${rightNum}</td>
+                    <td class="code code-right">${rightText}</td>
+                </tr>`;
+            } else if (d.type === 'replace') {
+                html += `<tr class="diff-replace">
+                    <td class="gutter gutter-left">${leftNum}</td>
+                    <td class="code code-left">${leftText}</td>
+                    <td class="diff-divider"></td>
+                    <td class="gutter gutter-right">${rightNum}</td>
+                    <td class="code code-right">${rightText}</td>
+                </tr>`;
+            }
+        });
+
+        html += '</tbody></table></div>';
+        return html;
+    }
+
+    function renderImageDiff(pageData) {
+        const origImg = pageData.original_image;
+        const revImg = pageData.revised_image;
+        const diffImg = pageData.diff_image;
+        const overlayImg = pageData.overlay_image;
+
+        if (!origImg && !revImg) {
+            return '<div style="padding:24px;text-align:center;color:var(--text-muted);font-size:.88rem;">No images available for this page.</div>';
+        }
+
+        let html = `
+            <div class="image-compare">
+                <div class="image-compare-panel">
+                    <h5>
+                        <i data-lucide="file-minus" style="width:14px;height:14px;"></i>
+                        Original
+                    </h5>
+                    ${origImg ? `<img src="${origImg}" alt="Original page" loading="lazy">` : '<p style="color:var(--text-muted);font-size:.82rem;">Page not available</p>'}
+                </div>
+                <div class="image-compare-panel">
+                    <h5>
+                        <i data-lucide="file-plus" style="width:14px;height:14px;"></i>
+                        Revised
+                    </h5>
+                    ${revImg ? `<img src="${revImg}" alt="Revised page" loading="lazy">` : '<p style="color:var(--text-muted);font-size:.82rem;">Page not available</p>'}
+                </div>
+            </div>`;
+
+        if (overlayImg) {
+            html += `
+            <div class="image-overlay-section">
+                <h5>
+                    <i data-lucide="layers" style="width:14px;height:14px;"></i>
+                    Difference Overlay (changes highlighted in red/green)
+                </h5>
+                <img src="${overlayImg}" alt="Diff overlay" loading="lazy" style="max-width:60%;margin:0 auto;">
+            </div>`;
+        }
+
+        return html;
+    }
+
+    function renderAIInsights(textChanges, imageChanges) {
+        let html = '<div class="ai-insights"><h5><i data-lucide="sparkles" style="width:16px;height:16px;"></i> AI-Powered Analysis</h5>';
+
+        textChanges.forEach(c => {
+            const typeClass = (c.type || 'MODIFIED').toLowerCase();
+            html += `
+            <div class="ai-insight-item">
+                <span class="ai-type ${typeClass}">${escapeHtml(c.type || 'CHANGE')}</span>
+                <div>
+                    ${c.original ? `<div style="color:var(--danger);text-decoration:line-through;margin-bottom:2px;">${escapeHtml(c.original)}</div>` : ''}
+                    ${c.revised ? `<div style="color:var(--success);">${escapeHtml(c.revised)}</div>` : ''}
+                </div>
+            </div>`;
+        });
+
+        imageChanges.forEach(c => {
+            html += `
+            <div class="ai-insight-item">
+                <span class="ai-type image">IMAGE</span>
+                <div>
+                    <div>${escapeHtml(c.description || '')}</div>
+                    <div style="font-size:.75rem;color:var(--text-muted);margin-top:2px;">Impact: ${escapeHtml(c.impact || 'N/A')}</div>
+                </div>
+            </div>`;
+        });
+
+        if (textChanges.length === 0 && imageChanges.length === 0) {
+            html += '<div style="color:var(--text-muted);font-size:.82rem;">No AI insights available for this page.</div>';
+        }
+
+        html += '</div>';
+        return html;
     }
 </script>
 
