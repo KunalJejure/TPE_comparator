@@ -36,7 +36,10 @@
         }
 
         :root {
-            --bg: #F3F5F9;
+            --bg: #F0FDF4;
+            /* Faded Green */
+            --sidebar-bg: #EFF6FF;
+            /* Faded Blue */
             --card: #FFFFFF;
             --text-primary: #1E293B;
             --text-secondary: #64748B;
@@ -79,9 +82,9 @@
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
             background: var(--bg);
             color: var(--text-primary);
-            display: flex;
             min-height: 100vh;
             overflow-x: hidden;
+            position: relative;
         }
 
         a {
@@ -104,7 +107,8 @@
            ================================================================ */
         .sidebar {
             width: var(--sidebar-w);
-            background: var(--card);
+            background: var(--sidebar-bg);
+            /* Updated to use specific sidebar background */
             border-right: 1px solid var(--border);
             display: flex;
             flex-direction: column;
@@ -114,6 +118,95 @@
             bottom: 0;
             z-index: 50;
             padding: 28px 20px 20px;
+            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .sidebar.collapsed {
+            width: 80px;
+            padding: 28px 10px 20px;
+        }
+
+        .sidebar.collapsed .nav-text,
+        .sidebar.collapsed .badge,
+        .sidebar.collapsed .sidebar-upgrade,
+        .sidebar.collapsed .sidebar-footer-text,
+        .sidebar.collapsed .sidebar-logo {
+            display: none;
+        }
+
+        /* Show scaled logo when collapsed */
+        .sidebar.collapsed>img {
+            display: block;
+            width: 40px !important;
+            height: auto !important;
+            margin: 0 auto 20px;
+        }
+
+        .sidebar.collapsed .nav-item {
+            justify-content: center;
+            padding: 11px 0;
+        }
+
+        /* Tooltips on hover when collapsed */
+        .sidebar.collapsed .nav-item:hover::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            left: 100%;
+            top: 50%;
+            transform: translateY(-50%);
+            margin-left: 10px;
+            background: #1E293B;
+            color: #fff;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            white-space: nowrap;
+            z-index: 100;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            animation: fadeIn 0.2s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-50%) translateX(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(-50%) translateX(0);
+            }
+        }
+
+        .sidebar-toggle {
+            position: absolute;
+            right: -12px;
+            top: 36px;
+            width: 24px;
+            height: 24px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            transition: all 0.2s;
+            z-index: 60;
+            color: var(--text-secondary);
+        }
+
+        .sidebar-toggle:hover {
+            color: var(--accent);
+            border-color: var(--accent);
+        }
+
+        .sidebar-toggle svg {
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .sidebar.collapsed .sidebar-toggle svg {
+            transform: rotate(180deg);
         }
 
         .sidebar-logo {
@@ -219,7 +312,10 @@
         .sidebar-footer {
             display: flex;
             flex-direction: column;
-            gap: 2px;
+        }
+
+        .sidebar-footer .nav-item {
+            color: var(--text-muted);
         }
 
         /* ================================================================
@@ -228,8 +324,15 @@
         .main {
             flex: 1;
             margin-left: var(--sidebar-w);
+            max-width: calc(100% - var(--sidebar-w));
             padding: 28px 36px;
             min-height: 100vh;
+            transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1), max-width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .main.collapsed {
+            margin-left: 80px;
+            max-width: calc(100% - 80px);
         }
 
         /* Header */
@@ -301,6 +404,12 @@
             display: flex;
             align-items: center;
             gap: 16px;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
         }
 
         .stat-icon {
@@ -363,6 +472,12 @@
             border: 1px solid var(--border);
             box-shadow: var(--shadow);
             margin-bottom: 28px;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .chart-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
         }
 
         .chart-header {
@@ -399,6 +514,12 @@
             padding: 24px;
             border: 1px solid var(--border);
             box-shadow: var(--shadow);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .tasks-section:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
         }
 
         .tasks-header {
@@ -884,6 +1005,16 @@
             border-radius: var(--radius-sm);
             padding: 16px;
             text-align: center;
+            border: 1px solid transparent;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+            cursor: default;
+        }
+
+        .r-stat:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow);
+            background: #fff;
+            border: 1px solid var(--border);
         }
 
         .r-stat .r-val {
@@ -1689,470 +1820,697 @@
             text-align: center;
             text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
         }
+
+        .login-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: var(--bg);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.5s ease-out, visibility 0.5s;
+        }
+
+        .login-container.hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        .login-card {
+            background: var(--card);
+            padding: 40px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-lg);
+            width: 100%;
+            max-width: 400px;
+            border: 1px solid var(--border);
+            text-align: center;
+        }
+
+        .login-logo {
+            margin-bottom: 24px;
+        }
+
+        .login-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+        }
+
+        .login-subtitle {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 32px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            font-size: 0.95rem;
+            transition: all 0.2s;
+            background: var(--bg);
+        }
+
+        .form-input:focus {
+            border-color: var(--accent);
+            outline: none;
+            box-shadow: 0 0 0 3px var(--accent-light);
+            background: #fff;
+        }
+
+        .btn-login {
+            width: 100%;
+            padding: 12px;
+            background: var(--accent);
+            color: #fff;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+            margin-top: 12px;
+        }
+
+        .btn-login:hover {
+            background: var(--accent-hover);
+        }
+
+        /* Hide main app initially */
+        #app-container {
+            display: none;
+            opacity: 0;
+            transition: opacity 0.5s ease-in;
+        }
+
+        #app-container.visible {
+            display: flex;
+            opacity: 1;
+        }
+
+        /* Welcome Popup */
+        .welcome-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(30, 41, 59, 0.4);
+            /* Greyed blur */
+            backdrop-filter: blur(8px);
+            z-index: 2000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+
+        .welcome-overlay.active {
+            opacity: 1;
+            display: flex;
+        }
+
+        .welcome-card-box {
+            background: #ffffff;
+            width: 100%;
+            max-width: 480px;
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            transform: translateY(20px) scale(0.95);
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+
+        .welcome-overlay.active .welcome-card-box {
+            transform: translateY(0) scale(1);
+        }
+
+        .welcome-close-btn {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--bg);
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-muted);
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .welcome-close-btn:hover {
+            background: var(--border);
+            color: var(--text-primary);
+        }
+
+        .welcome-icon-box {
+            width: 80px;
+            height: 80px;
+            background: var(--accent-light);
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            margin: 0 auto 24px;
+            color: var(--accent);
+        }
+
+        #app-container.visible {
+            display: flex;
+            opacity: 1;
+        }
     </style>
 </head>
 
 <body>
 
-    <!-- ============================================================
+    <!-- LOGIN PAGE -->
+    <div class="login-container" id="loginPage">
+        <div class="login-card">
+            <div class="login-logo">
+                <img src="{{ url_for('static', path='images/xLM.svg') }}" alt="Logo"
+                    style="height: 50px; margin: 0 auto;">
+            </div>
+            <h1 class="login-title">Welcome back</h1>
+            <p class="login-subtitle">Sign in to your account to continue</p>
+
+            <form onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <label class="form-label">Full Name</label>
+                    <input type="text" class="form-input" placeholder="John Doe" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Email Address</label>
+                    <input type="email" class="form-input" placeholder="name@company.com" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Password</label>
+                    <input type="password" class="form-input" placeholder="••••••••" required>
+                </div>
+                <button type="submit" class="btn-login">Sign In</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- WRAPPER FOR MAIN APP -->
+    <div id="app-container">
+
+        <!-- ============================================================
      LEFT SIDEBAR
      ============================================================ -->
-    <aside class="sidebar">
-        <img src="{{ url_for('static', path='images/app_Name.png') }}" alt="Logo" style="width:200px; height:60px;">
-        <div class="sidebar-logo">
-            <!--<div class="logo-icon">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-toggle" onclick="toggleSidebar()">
+                <i data-lucide="chevron-left" style="width:14px; height:14px;"></i>
+            </div>
+
+            <img src="{{ url_for('static', path='images/xLM.svg') }}" alt="Logo" style="width:200px; height:60px;">
+            <div class="sidebar-logo">
+                <!--<div class="logo-icon">
              <i data-lucide="file-diff" style="width:20px; height:20px;"></i> 
                
             </div> 
             <span>AuditLens</span>-->
-        </div>
+            </div>
 
-        <nav class="sidebar-nav">
-            <a class="nav-item active" data-view="dashboard" onclick="switchView('dashboard')">
-                <i data-lucide="layout-dashboard" style="width:18px; height:18px;"></i>
-                Dashboard
-            </a>
-            <a class="nav-item" data-view="compare" onclick="switchView('compare')">
-                <i data-lucide="git-compare" style="width:18px; height:18px;"></i>
-                Compare
-                <span class="badge">+</span>
-            </a>
-            <a class="nav-item" data-view="results" onclick="switchView('results')" id="navResults"
-                style="display:none;">
-                <i data-lucide="split" style="width:18px; height:18px;"></i>
-                Results
-            </a>
-            <a class="nav-item" data-view="history" onclick="switchView('history')">
-                <i data-lucide="history" style="width:18px; height:18px;"></i>
-                History
-            </a>
-            <a class="nav-item">
-                <i data-lucide="file-bar-chart" style="width:18px; height:18px;"></i>
-                Reports
-            </a>
-            <a class="nav-item">
-                <i data-lucide="settings" style="width:18px; height:18px;"></i>
-                Settings
-            </a>
-        </nav>
+            <nav class="sidebar-nav">
+                <a class="nav-item active" data-view="dashboard" onclick="switchView('dashboard')"
+                    data-tooltip="Dashboard">
+                    <i data-lucide="layout-dashboard" style="width:18px; height:18px;"></i>
+                    <span class="nav-text">Dashboard</span>
+                </a>
+                <a class="nav-item" data-view="compare" onclick="switchView('compare')" data-tooltip="Compare">
+                    <i data-lucide="git-compare" style="width:18px; height:18px;"></i>
+                    <span class="nav-text">Compare</span>
+                    <span class="badge">+</span>
+                </a>
+                <a class="nav-item" data-view="results" onclick="switchView('results')" id="navResults"
+                    style="display:none;" data-tooltip="Results">
+                    <i data-lucide="split" style="width:18px; height:18px;"></i>
+                    <span class="nav-text">Results</span>
+                </a>
+                <a class="nav-item" data-view="history" onclick="switchView('history')" data-tooltip="History">
+                    <i data-lucide="history" style="width:18px; height:18px;"></i>
+                    <span class="nav-text">History</span>
+                </a>
+                <a class="nav-item" data-tooltip="Reports">
+                    <i data-lucide="file-bar-chart" style="width:18px; height:18px;"></i>
+                    <span class="nav-text">Reports</span>
+                </a>
+                <a class="nav-item" data-tooltip="Settings">
+                    <i data-lucide="settings" style="width:18px; height:18px;"></i>
+                    <span class="nav-text">Settings</span>
+                </a>
+            </nav>
 
-        <!--<div class="sidebar-upgrade">
+            <!--<div class="sidebar-upgrade">
         <h4>Upgrade to Pro</h4>
         <p>Get unlimited comparisons and AI analysis</p>
         <button class="btn-upgrade">Upgrade</button>
     </div>-->
 
-        <div class="sidebar-footer">
-            <a class="nav-item">
-                <i data-lucide="help-circle" style="width:18px; height:18px;"></i>
-                Help &amp; information
-            </a>
-            <a class="nav-item">
-                <i data-lucide="log-out" style="width:18px; height:18px;"></i>
-                Log out
-            </a>
-        </div>
-    </aside>
+            <div class="sidebar-footer">
+                <a class="nav-item" data-tooltip="Help & Information">
+                    <i data-lucide="help-circle" style="width:18px; height:18px;"></i>
+                    <span class="nav-text">Help &amp; information</span>
+                </a>
+                <a class="nav-item" data-tooltip="Log out" onclick="handleLogout()">
+                    <i data-lucide="log-out" style="width:18px; height:18px;"></i>
+                    <span class="nav-text">Log out</span>
+                </a>
+            </div>
+        </aside>
 
-    <!-- ============================================================
+        <!-- ============================================================
      MAIN CONTENT
      ============================================================ -->
-    <main class="main">
+        <main class="main" id="mainContent">
 
-        <!-- Header -->
-        <div class="header">
-            <div>
-                <h1 id="pageTitle">Dashboard</h1>
-                <p class="subtitle" id="pageSubtitle">Compare PDFs and track differences. Your AI-powered document QA
-                    tool.</p>
-            </div>
-            <div class="header-right">
-                <img src="/static/images/xLM.svg" alt="xLM Logo" style="height: 40px; width: auto;" />
-            </div>
-        </div>
-
-        <!-- ==================== DASHBOARD VIEW ==================== -->
-        <div class="view active" id="view-dashboard">
-
-            <!-- Stats Row -->
-            <div class="stats-row">
-                <div class="stat-card">
-                    <div class="stat-icon blue">
-                        <i data-lucide="files" style="width:22px; height:22px;"></i>
-                    </div>
-                    <div class="stat-info">
-                        <div class="stat-label">Comparisons</div>
-                        <div class="stat-value" id="statTotal">0</div>
-                        <div class="stat-change up">
-                            <i data-lucide="trending-up" style="width:14px; height:14px;"></i>
-                            Ready
-                        </div>
-                    </div>
+            <!-- Header -->
+            <div class="header">
+                <div>
+                    <h1 id="pageTitle">Dashboard</h1>
+                    <p class="subtitle" id="pageSubtitle">Compare PDFs and track differences. Your AI-powered document
+                        QA
+                        tool.</p>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-icon green">
-                        <i data-lucide="check-circle" style="width:22px; height:22px;"></i>
-                    </div>
-                    <div class="stat-info">
-                        <div class="stat-label">Matches</div>
-                        <div class="stat-value" id="statMatches">0</div>
-                        <div class="stat-change up">
-                            <i data-lucide="trending-up" style="width:14px; height:14px;"></i>
-                            Identical pages
-                        </div>
-                    </div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon red">
-                        <i data-lucide="alert-triangle" style="width:22px; height:22px;"></i>
-                    </div>
-                    <div class="stat-info">
-                        <div class="stat-label">Differences</div>
-                        <div class="stat-value" id="statDiffs">0</div>
-                        <div class="stat-change down">
-                            <i data-lucide="trending-down" style="width:14px; height:14px;"></i>
-                            Pages with changes
-                        </div>
-                    </div>
+                <div class="header-right">
+                    <img src="/static/images/AppName.png" alt="App Logo"
+                        style="height: 80px; width: auto; object-fit: contain; margin-top: -10px; margin-right: -10px;" />
                 </div>
             </div>
 
-            <!-- Performance Chart -->
-            <div class="chart-card">
-                <div class="chart-header">
-                    <h3>Performance</h3>
-                    <select class="period-select">
-                        <option>Last 7 comparisons</option>
-                        <option>Last 30 comparisons</option>
-                    </select>
-                </div>
-                <div class="chart-container">
-                    <canvas id="perfChart"></canvas>
-                </div>
-            </div>
+            <!-- ==================== DASHBOARD VIEW ==================== -->
+            <div class="view active" id="view-dashboard">
 
-            <!-- Recent Comparisons -->
-            <div class="tasks-section">
-                <div class="tasks-header">
-                    <h3>Recent Comparisons</h3>
-                    <span class="done-tag" id="doneTag">No results yet</span>
-                </div>
-                <div id="tasksList">
-                    <div class="task-item">
-                        <div class="task-icon purple">
-                            <i data-lucide="file-text" style="width:20px; height:20px;"></i>
+                <!-- Stats Row -->
+                <div class="stats-row">
+                    <div class="stat-card">
+                        <div class="stat-icon blue">
+                            <i data-lucide="files" style="width:22px; height:22px;"></i>
                         </div>
-                        <div class="task-info">
-                            <div class="task-name">Upload PDFs to begin</div>
-                            <div class="task-sub">Go to Compare tab to upload two PDF files</div>
-                        </div>
-                        <div class="task-status">
-                            <div class="status-dot orange"></div>
-                            Waiting
-                        </div>
-                        <div class="task-time">--</div>
-                        <div class="task-menu">
-                            <i data-lucide="more-horizontal" style="width:18px; height:18px;"></i>
-                        </div>
-                    </div>
-                    <div class="task-item">
-                        <div class="task-icon pink">
-                            <i data-lucide="scan-search" style="width:20px; height:20px;"></i>
-                        </div>
-                        <div class="task-info">
-                            <div class="task-name">AI-Powered Analysis</div>
-                            <div class="task-sub">Semantic text comparison via Groq LLM</div>
-                        </div>
-                        <div class="task-status">
-                            <div class="status-dot orange"></div>
-                            On hold
-                        </div>
-                        <div class="task-time">--</div>
-                        <div class="task-menu">
-                            <i data-lucide="more-horizontal" style="width:18px; height:18px;"></i>
-                        </div>
-                    </div>
-                    <div class="task-item">
-                        <div class="task-icon blue">
-                            <i data-lucide="bar-chart-3" style="width:20px; height:20px;"></i>
-                        </div>
-                        <div class="task-info">
-                            <div class="task-name">Visual Diff Report</div>
-                            <div class="task-sub">Page-by-page image overlay generation</div>
-                        </div>
-                        <div class="task-status">
-                            <div class="status-dot orange"></div>
-                            On hold
-                        </div>
-                        <div class="task-time">--</div>
-                        <div class="task-menu">
-                            <i data-lucide="more-horizontal" style="width:18px; height:18px;"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- ==================== COMPARE VIEW ==================== -->
-        <div class="view" id="view-compare">
-            <div class="compare-container">
-
-                <!-- Upload Section -->
-                <div class="upload-section">
-                    <h3>Upload PDFs for Comparison</h3>
-                    <p class="upload-subtitle">Upload the original and revised PDF documents. We'll perform text,
-                        visual, and AI-powered analysis.</p>
-
-                    <div class="upload-grid">
-                        <!-- Original PDF -->
-                        <div class="upload-box" id="dropOriginal"
-                            onclick="document.getElementById('fileOriginal').click()">
-                            <div class="upload-box-icon original">
-                                <i data-lucide="file-minus" style="width:24px; height:24px;"></i>
-                            </div>
-                            <h4>Original PDF</h4>
-                            <p>Drop your <strong>original</strong> document here<br />or <span
-                                    class="browse-link">browse files</span></p>
-                            <div id="fileInfoOriginal"></div>
-                        </div>
-                        <input type="file" id="fileOriginal" accept=".pdf" hidden />
-
-                        <!-- Revised PDF -->
-                        <div class="upload-box" id="dropRevised"
-                            onclick="document.getElementById('fileRevised').click()">
-                            <div class="upload-box-icon revised">
-                                <i data-lucide="file-plus" style="width:24px; height:24px;"></i>
-                            </div>
-                            <h4>Revised PDF</h4>
-                            <p>Drop your <strong>revised</strong> document here<br />or <span class="browse-link">browse
-                                    files</span></p>
-                            <div id="fileInfoRevised"></div>
-                        </div>
-                        <input type="file" id="fileRevised" accept=".pdf" hidden />
-                    </div>
-
-                    <div class="compare-actions">
-                        <button class="btn-compare" id="compareBtn" disabled onclick="runCompare()">
-                            <i data-lucide="play" style="width:18px; height:18px;"></i>
-                            <span id="compareBtnText">Compare PDFs</span>
-                            <div class="spinner" id="spinner"></div>
-                        </button>
-                        <button class="btn-reset" onclick="resetUpload()">
-                            <i data-lucide="refresh-cw" style="width:16px; height:16px;"></i>
-                            Reset
-                        </button>
-                    </div>
-
-                    <div class="progress-bar" id="progressBar">
-                        <div class="progress-fill" id="progressFill"></div>
-                    </div>
-                </div>
-
-                <!-- Activity Feed -->
-                <div class="activity-section">
-                    <h3>Activity Log</h3>
-
-                    <div class="activity-item">
-                        <div class="activity-avatar" style="background: #6366F1;">SY</div>
-                        <div class="activity-content">
-                            <div class="act-header">
-                                <span class="act-name">System</span>
-                                <span class="act-time">Now</span>
-                            </div>
-                            <div class="act-desc">Application ready. Upload two PDFs to start comparison.</div>
-                        </div>
-                    </div>
-
-                    <div class="activity-item">
-                        <div class="activity-avatar" style="background: #EC4899;">AI</div>
-                        <div class="activity-content">
-                            <div class="act-header">
-                                <span class="act-name">Groq AI</span>
-                                <span class="act-time">--</span>
-                            </div>
-                            <div class="msg-bubble">
-                                Upload two PDFs and I'll analyze the semantic, visual, and image-level differences for
-                                you. Results appear in a GitHub-style side-by-side diff view.
+                        <div class="stat-info">
+                            <div class="stat-label">Comparisons</div>
+                            <div class="stat-value" id="statTotal">0</div>
+                            <div class="stat-change up">
+                                <i data-lucide="trending-up" style="width:14px; height:14px;"></i>
+                                Ready
                             </div>
                         </div>
                     </div>
+                    <div class="stat-card">
+                        <div class="stat-icon green">
+                            <i data-lucide="check-circle" style="width:22px; height:22px;"></i>
+                        </div>
+                        <div class="stat-info">
+                            <div class="stat-label">Matches</div>
+                            <div class="stat-value" id="statMatches">0</div>
+                            <div class="stat-change up">
+                                <i data-lucide="trending-up" style="width:14px; height:14px;"></i>
+                                Identical pages
+                            </div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon red">
+                            <i data-lucide="alert-triangle" style="width:22px; height:22px;"></i>
+                        </div>
+                        <div class="stat-info">
+                            <div class="stat-label">Differences</div>
+                            <div class="stat-value" id="statDiffs">0</div>
+                            <div class="stat-change down">
+                                <i data-lucide="trending-down" style="width:14px; height:14px;"></i>
+                                Pages with changes
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-                    <div id="activityFeed"></div>
+                <!-- Performance Chart -->
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3>Performance</h3>
+                        <select class="period-select">
+                            <option>Last 7 comparisons</option>
+                            <option>Last 30 comparisons</option>
+                        </select>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="perfChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Recent Comparisons -->
+                <div class="tasks-section">
+                    <div class="tasks-header">
+                        <h3>Recent Comparisons</h3>
+                        <span class="done-tag" id="doneTag">No results yet</span>
+                    </div>
+                    <div id="tasksList">
+                        <div class="task-item">
+                            <div class="task-icon purple">
+                                <i data-lucide="file-text" style="width:20px; height:20px;"></i>
+                            </div>
+                            <div class="task-info">
+                                <div class="task-name">Upload PDFs to begin</div>
+                                <div class="task-sub">Go to Compare tab to upload two PDF files</div>
+                            </div>
+                            <div class="task-status">
+                                <div class="status-dot orange"></div>
+                                Waiting
+                            </div>
+                            <div class="task-time">--</div>
+                            <div class="task-menu">
+                                <i data-lucide="more-horizontal" style="width:18px; height:18px;"></i>
+                            </div>
+                        </div>
+                        <div class="task-item">
+                            <div class="task-icon pink">
+                                <i data-lucide="scan-search" style="width:20px; height:20px;"></i>
+                            </div>
+                            <div class="task-info">
+                                <div class="task-name">AI-Powered Analysis</div>
+                                <div class="task-sub">Semantic text comparison via Groq LLM</div>
+                            </div>
+                            <div class="task-status">
+                                <div class="status-dot orange"></div>
+                                On hold
+                            </div>
+                            <div class="task-time">--</div>
+                            <div class="task-menu">
+                                <i data-lucide="more-horizontal" style="width:18px; height:18px;"></i>
+                            </div>
+                        </div>
+                        <div class="task-item">
+                            <div class="task-icon blue">
+                                <i data-lucide="bar-chart-3" style="width:20px; height:20px;"></i>
+                            </div>
+                            <div class="task-info">
+                                <div class="task-name">Visual Diff Report</div>
+                                <div class="task-sub">Page-by-page image overlay generation</div>
+                            </div>
+                            <div class="task-status">
+                                <div class="status-dot orange"></div>
+                                On hold
+                            </div>
+                            <div class="task-time">--</div>
+                            <div class="task-menu">
+                                <i data-lucide="more-horizontal" style="width:18px; height:18px;"></i>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <!-- ==================== RESULTS VIEW ==================== -->
-        <div class="view" id="view-results">
-            <div class="results-container" id="resultsContainer">
-                <!-- Dynamically populated -->
-            </div>
-        </div>
+            <!-- ==================== COMPARE VIEW ==================== -->
+            <div class="view" id="view-compare">
+                <div class="compare-container">
 
-        <!-- ==================== HISTORY VIEW ==================== -->
-        <div class="view" id="view-history">
-            <div class="tasks-section">
-                <div class="tasks-header">
-                    <h3>Comparison History</h3>
+                    <!-- Upload Section -->
+                    <div class="upload-section">
+                        <h3>Upload PDFs for Comparison</h3>
+                        <p class="upload-subtitle">Upload the original and revised PDF documents. We'll perform text,
+                            visual, and AI-powered analysis.</p>
+
+                        <div class="upload-grid">
+                            <!-- Original PDF -->
+                            <div class="upload-box" id="dropOriginal"
+                                onclick="document.getElementById('fileOriginal').click()">
+                                <div class="upload-box-icon original">
+                                    <i data-lucide="file-minus" style="width:24px; height:24px;"></i>
+                                </div>
+                                <h4>Original PDF</h4>
+                                <p>Drop your <strong>original</strong> document here<br />or <span
+                                        class="browse-link">browse files</span></p>
+                                <div id="fileInfoOriginal"></div>
+                            </div>
+                            <input type="file" id="fileOriginal" accept=".pdf" hidden />
+
+                            <!-- Revised PDF -->
+                            <div class="upload-box" id="dropRevised"
+                                onclick="document.getElementById('fileRevised').click()">
+                                <div class="upload-box-icon revised">
+                                    <i data-lucide="file-plus" style="width:24px; height:24px;"></i>
+                                </div>
+                                <h4>Revised PDF</h4>
+                                <p>Drop your <strong>revised</strong> document here<br />or <span
+                                        class="browse-link">browse
+                                        files</span></p>
+                                <div id="fileInfoRevised"></div>
+                            </div>
+                            <input type="file" id="fileRevised" accept=".pdf" hidden />
+                        </div>
+
+                        <div class="compare-actions">
+                            <button class="btn-compare" id="compareBtn" disabled onclick="runCompare()">
+                                <i data-lucide="play" style="width:18px; height:18px;"></i>
+                                <span id="compareBtnText">Compare PDFs</span>
+                                <div class="spinner" id="spinner"></div>
+                            </button>
+                            <button class="btn-reset" onclick="resetUpload()">
+                                <i data-lucide="refresh-cw" style="width:16px; height:16px;"></i>
+                                Reset
+                            </button>
+                        </div>
+
+                        <div class="progress-bar" id="progressBar">
+                            <div class="progress-fill" id="progressFill"></div>
+                        </div>
+                    </div>
+
+                    <!-- Activity Feed -->
+                    <div class="activity-section">
+                        <h3>Activity Log</h3>
+
+                        <div class="activity-item">
+                            <div class="activity-avatar" style="background: #6366F1;">SY</div>
+                            <div class="activity-content">
+                                <div class="act-header">
+                                    <span class="act-name">System</span>
+                                    <span class="act-time">Now</span>
+                                </div>
+                                <div class="act-desc">Application ready. Upload two PDFs to start comparison.</div>
+                            </div>
+                        </div>
+
+                        <div class="activity-item">
+                            <div class="activity-avatar" style="background: #EC4899;">AI</div>
+                            <div class="activity-content">
+                                <div class="act-header">
+                                    <span class="act-name">Groq AI</span>
+                                    <span class="act-time">--</span>
+                                </div>
+                                <div class="msg-bubble">
+                                    Upload two PDFs and I'll analyze the semantic, visual, and image-level differences
+                                    for
+                                    you. Results appear in a GitHub-style side-by-side diff view.
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="activityFeed"></div>
+                    </div>
                 </div>
-                <div id="history-list">
-                    <!-- History items will be injected here -->
-                    <div style="padding:20px;text-align:center;color:var(--text-muted);">Loading history...</div>
+            </div>
+
+            <!-- ==================== RESULTS VIEW ==================== -->
+            <div class="view" id="view-results">
+                <div class="results-container" id="resultsContainer">
+                    <!-- Dynamically populated -->
                 </div>
             </div>
-        </div>
 
-    </main>
+            <!-- ==================== HISTORY VIEW ==================== -->
+            <div class="view" id="view-history">
+                <div class="tasks-section">
+                    <div class="tasks-header">
+                        <h3>Comparison History</h3>
+                    </div>
+                    <div id="history-list">
+                        <!-- History items will be injected here -->
+                        <div style="padding:20px;text-align:center;color:var(--text-muted);">Loading history...</div>
+                    </div>
+                </div>
+            </div>
 
-    <!-- ============================================================
+        </main>
+
+        <!-- ============================================================
      SCRIPTS
      ============================================================ -->
-    <script>
-        // --- Init Icons ---
-        lucide.createIcons();
-
-
-
-        // --- Chart ---
-        const ctx = document.getElementById('perfChart').getContext('2d');
-        const perfChart = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: ['01', '02', '03', '04', '05', '06', '07'],
-                datasets: [
-                    {
-                        label: 'Similarity %',
-                        data: [95, 87, 92, 78, 96, 88, 91],
-                        borderColor: '#3B82F6',
-                        backgroundColor: 'rgba(59,130,246,.08)',
-                        fill: true,
-                        tension: .4,
-                        pointRadius: 4,
-                        pointBackgroundColor: '#3B82F6',
-                        borderWidth: 2,
-                    },
-                    {
-                        label: 'Pages Checked',
-                        data: [12, 8, 15, 10, 6, 14, 9],
-                        borderColor: '#CBD5E1',
-                        backgroundColor: 'transparent',
-                        borderDash: [6, 4],
-                        tension: .4,
-                        pointRadius: 3,
-                        pointBackgroundColor: '#CBD5E1',
-                        borderWidth: 2,
-                    },
-                ]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { display: false },
-                    tooltip: {
-                        backgroundColor: '#1E293B',
-                        titleFont: { family: 'Inter', weight: '600' },
-                        bodyFont: { family: 'Inter' },
-                        cornerRadius: 8,
-                        padding: 12,
-                    }
-                },
-                scales: {
-                    x: {
-                        grid: { display: false },
-                        ticks: { font: { family: 'Inter', size: 12 }, color: '#94A3B8' }
-                    },
-                    y: {
-                        grid: { color: '#F1F5F9' },
-                        ticks: { font: { family: 'Inter', size: 12 }, color: '#94A3B8' }
-                    }
-                },
-                interaction: { intersect: false, mode: 'index' }
-            }
-        });
-
-        // ================================================================
-        // VIEW SWITCHING
-        // ================================================================
-        const viewTitles = {
-            dashboard: { title: 'Dashboard', subtitle: 'Compare PDFs and track differences. Your AI-powered document QA tool.' },
-            compare: { title: 'Compare PDFs', subtitle: 'Upload original and revised documents for side-by-side analysis.' },
-            results: { title: 'Comparison Results', subtitle: 'Side-by-side text diff and visual comparison.' },
-            history: { title: 'History', subtitle: 'View previous comparisons and their results.' },
-        };
-
-        function switchView(viewName) {
-            // Hide all views
-            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-            // Show target view
-            const target = document.getElementById('view-' + viewName);
-            if (target) target.classList.add('active');
-
-            // Update nav
-            document.querySelectorAll('.nav-item[data-view]').forEach(n => n.classList.remove('active'));
-            const navItem = document.querySelector(`.nav-item[data-view="${viewName}"]`);
-            if (navItem) navItem.classList.add('active');
-
-            // Update header
-            const info = viewTitles[viewName] || viewTitles.dashboard;
-            document.getElementById('pageTitle').textContent = info.title;
-            document.getElementById('pageSubtitle').textContent = info.subtitle;
-
-            if (viewName === 'history') {
-                loadHistory();
-            }
-
+        <script>
+            // --- Init Icons ---
             lucide.createIcons();
-        }
 
-        // ================================================================
-        // FILE UPLOAD LOGIC
-        // ================================================================
-        let originalFile = null;
-        let revisedFile = null;
 
-        const dropOriginal = document.getElementById('dropOriginal');
-        const dropRevised = document.getElementById('dropRevised');
-        const fileOriginal = document.getElementById('fileOriginal');
-        const fileRevised = document.getElementById('fileRevised');
-        const compareBtn = document.getElementById('compareBtn');
 
-        // Drag & Drop for Original
-        dropOriginal.addEventListener('dragover', (e) => { e.preventDefault(); dropOriginal.classList.add('dragover'); });
-        dropOriginal.addEventListener('dragleave', () => dropOriginal.classList.remove('dragover'));
-        dropOriginal.addEventListener('drop', (e) => {
-            e.preventDefault();
-            dropOriginal.classList.remove('dragover');
-            const f = Array.from(e.dataTransfer.files).find(f =>
-                f.name.toLowerCase().endsWith('.pdf') || f.type === 'application/pdf');
-            if (f) { originalFile = f; renderUploadBoxes(); }
-        });
+            // --- Chart ---
+            const ctx = document.getElementById('perfChart').getContext('2d');
+            const perfChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['01', '02', '03', '04', '05', '06', '07'],
+                    datasets: [
+                        {
+                            label: 'Similarity %',
+                            data: [95, 87, 92, 78, 96, 88, 91],
+                            borderColor: '#3B82F6',
+                            backgroundColor: 'rgba(59,130,246,.08)',
+                            fill: true,
+                            tension: .4,
+                            pointRadius: 4,
+                            pointBackgroundColor: '#3B82F6',
+                            borderWidth: 2,
+                        },
+                        {
+                            label: 'Pages Checked',
+                            data: [12, 8, 15, 10, 6, 14, 9],
+                            borderColor: '#CBD5E1',
+                            backgroundColor: 'transparent',
+                            borderDash: [6, 4],
+                            tension: .4,
+                            pointRadius: 3,
+                            pointBackgroundColor: '#CBD5E1',
+                            borderWidth: 2,
+                        },
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: '#1E293B',
+                            titleFont: { family: 'Inter', weight: '600' },
+                            bodyFont: { family: 'Inter' },
+                            cornerRadius: 8,
+                            padding: 12,
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { display: false },
+                            ticks: { font: { family: 'Inter', size: 12 }, color: '#94A3B8' }
+                        },
+                        y: {
+                            grid: { color: '#F1F5F9' },
+                            ticks: { font: { family: 'Inter', size: 12 }, color: '#94A3B8' }
+                        }
+                    },
+                    interaction: { intersect: false, mode: 'index' }
+                }
+            });
 
-        // Drag & Drop for Revised
-        dropRevised.addEventListener('dragover', (e) => { e.preventDefault(); dropRevised.classList.add('dragover'); });
-        dropRevised.addEventListener('dragleave', () => dropRevised.classList.remove('dragover'));
-        dropRevised.addEventListener('drop', (e) => {
-            e.preventDefault();
-            dropRevised.classList.remove('dragover');
-            const f = Array.from(e.dataTransfer.files).find(f =>
-                f.name.toLowerCase().endsWith('.pdf') || f.type === 'application/pdf');
-            if (f) { revisedFile = f; renderUploadBoxes(); }
-        });
+            // ================================================================
+            // VIEW SWITCHING
+            // ================================================================
+            const viewTitles = {
+                dashboard: { title: 'Dashboard', subtitle: 'Compare PDFs and track differences. Your AI-powered document QA tool.' },
+                compare: { title: 'Compare PDFs', subtitle: 'Upload original and revised documents for side-by-side analysis.' },
+                results: { title: 'Comparison Results', subtitle: 'Side-by-side text diff and visual comparison.' },
+                history: { title: 'History', subtitle: 'View previous comparisons and their results.' },
+            };
 
-        fileOriginal.addEventListener('change', (e) => {
-            if (e.target.files[0]) { originalFile = e.target.files[0]; renderUploadBoxes(); }
-        });
-        fileRevised.addEventListener('change', (e) => {
-            if (e.target.files[0]) { revisedFile = e.target.files[0]; renderUploadBoxes(); }
-        });
+            function switchView(viewName) {
+                // Hide all views
+                document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+                // Show target view
+                const target = document.getElementById('view-' + viewName);
+                if (target) target.classList.add('active');
 
-        function renderUploadBoxes() {
-            // Original
-            const origInfo = document.getElementById('fileInfoOriginal');
-            if (originalFile) {
-                dropOriginal.classList.add('has-file');
-                const size = (originalFile.size / 1024).toFixed(1) + ' KB';
-                origInfo.innerHTML = `
+                // Update nav
+                document.querySelectorAll('.nav-item[data-view]').forEach(n => n.classList.remove('active'));
+                const navItem = document.querySelector(`.nav-item[data-view="${viewName}"]`);
+                if (navItem) navItem.classList.add('active');
+
+                // Update header
+                const info = viewTitles[viewName] || viewTitles.dashboard;
+                document.getElementById('pageTitle').textContent = info.title;
+                document.getElementById('pageSubtitle').textContent = info.subtitle;
+
+                if (viewName === 'history') {
+                    loadHistory();
+                }
+
+                lucide.createIcons();
+            }
+
+            // ================================================================
+            // FILE UPLOAD LOGIC
+            // ================================================================
+            let originalFile = null;
+            let revisedFile = null;
+
+            const dropOriginal = document.getElementById('dropOriginal');
+            const dropRevised = document.getElementById('dropRevised');
+            const fileOriginal = document.getElementById('fileOriginal');
+            const fileRevised = document.getElementById('fileRevised');
+            const compareBtn = document.getElementById('compareBtn');
+
+            // Drag & Drop for Original
+            dropOriginal.addEventListener('dragover', (e) => { e.preventDefault(); dropOriginal.classList.add('dragover'); });
+            dropOriginal.addEventListener('dragleave', () => dropOriginal.classList.remove('dragover'));
+            dropOriginal.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropOriginal.classList.remove('dragover');
+                const f = Array.from(e.dataTransfer.files).find(f =>
+                    f.name.toLowerCase().endsWith('.pdf') || f.type === 'application/pdf');
+                if (f) { originalFile = f; renderUploadBoxes(); }
+            });
+
+            // Drag & Drop for Revised
+            dropRevised.addEventListener('dragover', (e) => { e.preventDefault(); dropRevised.classList.add('dragover'); });
+            dropRevised.addEventListener('dragleave', () => dropRevised.classList.remove('dragover'));
+            dropRevised.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropRevised.classList.remove('dragover');
+                const f = Array.from(e.dataTransfer.files).find(f =>
+                    f.name.toLowerCase().endsWith('.pdf') || f.type === 'application/pdf');
+                if (f) { revisedFile = f; renderUploadBoxes(); }
+            });
+
+            fileOriginal.addEventListener('change', (e) => {
+                if (e.target.files[0]) { originalFile = e.target.files[0]; renderUploadBoxes(); }
+            });
+            fileRevised.addEventListener('change', (e) => {
+                if (e.target.files[0]) { revisedFile = e.target.files[0]; renderUploadBoxes(); }
+            });
+
+            function renderUploadBoxes() {
+                // Original
+                const origInfo = document.getElementById('fileInfoOriginal');
+                if (originalFile) {
+                    dropOriginal.classList.add('has-file');
+                    const size = (originalFile.size / 1024).toFixed(1) + ' KB';
+                    origInfo.innerHTML = `
                 <div class="file-info" onclick="event.stopPropagation();">
                     <span class="fi-icon"><i data-lucide="file-text" style="width:16px;height:16px;"></i></span>
                     <span class="fi-name">${originalFile.name}</span>
@@ -2161,17 +2519,17 @@
                         <i data-lucide="x" style="width:14px;height:14px;"></i>
                     </span>
                 </div>`;
-            } else {
-                dropOriginal.classList.remove('has-file');
-                origInfo.innerHTML = '';
-            }
+                } else {
+                    dropOriginal.classList.remove('has-file');
+                    origInfo.innerHTML = '';
+                }
 
-            // Revised
-            const revInfo = document.getElementById('fileInfoRevised');
-            if (revisedFile) {
-                dropRevised.classList.add('has-file');
-                const size = (revisedFile.size / 1024).toFixed(1) + ' KB';
-                revInfo.innerHTML = `
+                // Revised
+                const revInfo = document.getElementById('fileInfoRevised');
+                if (revisedFile) {
+                    dropRevised.classList.add('has-file');
+                    const size = (revisedFile.size / 1024).toFixed(1) + ' KB';
+                    revInfo.innerHTML = `
                 <div class="file-info" onclick="event.stopPropagation();">
                     <span class="fi-icon"><i data-lucide="file-text" style="width:16px;height:16px;"></i></span>
                     <span class="fi-name">${revisedFile.name}</span>
@@ -2180,144 +2538,144 @@
                         <i data-lucide="x" style="width:14px;height:14px;"></i>
                     </span>
                 </div>`;
-            } else {
-                dropRevised.classList.remove('has-file');
-                revInfo.innerHTML = '';
-            }
-
-            compareBtn.disabled = !(originalFile && revisedFile);
-            lucide.createIcons();
-        }
-
-        function removeOriginal(e) {
-            e.stopPropagation();
-            originalFile = null;
-            fileOriginal.value = '';
-            renderUploadBoxes();
-        }
-        function removeRevised(e) {
-            e.stopPropagation();
-            revisedFile = null;
-            fileRevised.value = '';
-            renderUploadBoxes();
-        }
-
-        function resetUpload() {
-            originalFile = null;
-            revisedFile = null;
-            fileOriginal.value = '';
-            fileRevised.value = '';
-            renderUploadBoxes();
-        }
-
-        // ================================================================
-        // RUN COMPARISON
-        // ================================================================
-        let lastResult = null;
-
-        async function runCompare() {
-            if (!originalFile || !revisedFile) return;
-
-            const btn = document.getElementById('compareBtn');
-            const btnText = document.getElementById('compareBtnText');
-            const spinner = document.getElementById('spinner');
-            const progressBar = document.getElementById('progressBar');
-            const progressFill = document.getElementById('progressFill');
-
-            btn.disabled = true;
-            btnText.textContent = 'Analyzing...';
-            spinner.style.display = 'block';
-            progressBar.style.display = 'block';
-            progressFill.style.width = '0%';
-
-            // Simulate progress
-            let progress = 0;
-            const progressInterval = setInterval(() => {
-                progress = Math.min(progress + Math.random() * 12, 90);
-                progressFill.style.width = progress + '%';
-            }, 500);
-
-            addActivity('SY', '#6366F1', 'System', 'Uploading & processing PDFs...');
-
-            // Update dashboard task statuses
-            updateTaskStatus(0, 'In progress', 'red');
-            updateTaskStatus(1, 'In progress', 'red');
-
-            const formData = new FormData();
-            formData.append('original', originalFile);
-            formData.append('revised', revisedFile);
-
-            try {
-                const resp = await fetch('/api/compare', {
-                    method: 'POST',
-                    body: formData,
-                });
-
-                clearInterval(progressInterval);
-                progressFill.style.width = '100%';
-
-                if (!resp.ok) {
-                    const err = await resp.json();
-                    throw new Error(err.detail || 'Comparison failed');
+                } else {
+                    dropRevised.classList.remove('has-file');
+                    revInfo.innerHTML = '';
                 }
 
-                const data = await resp.json();
-                lastResult = data;
-
-                // Update dashboard stats
-                const total = data.total_pages || 0;
-                const passed = data.pages ? data.pages.filter(p => p.status === 'PASS').length : 0;
-                const failed = total - passed;
-
-                document.getElementById('statTotal').textContent = total;
-                document.getElementById('statMatches').textContent = passed;
-                document.getElementById('statDiffs').textContent = failed;
-                document.getElementById('doneTag').textContent = `Done ${Math.round((passed / total) * 100)}%`;
-
-                // Update dashboard tasks
-                updateTaskStatus(0, 'Done', 'green');
-                updateTaskStatus(1, 'Done', 'green');
-                updateTaskStatus(2, 'Done', 'green');
-
-                addActivity('AI', '#EC4899', 'Groq AI',
-                    `Analysis complete: ${data.overall?.overall_change || 'N/A'} changes detected. Confidence: ${((data.overall?.confidence || 0) * 100).toFixed(0)}%`);
-
-                // Update chart
-                updateChart(data);
-
-                // Show results nav item
-                document.getElementById('navResults').style.display = 'flex';
-
-                // Render results and switch to results view
-                renderResults(data);
-                switchView('results');
-
-            } catch (err) {
-                clearInterval(progressInterval);
-                addActivity('SY', '#EF4444', 'Error', err.message);
-                updateTaskStatus(0, 'Failed', 'red');
-            } finally {
-                btn.disabled = false;
-                btnText.textContent = 'Compare PDFs';
-                spinner.style.display = 'none';
-                setTimeout(() => { progressBar.style.display = 'none'; }, 1000);
+                compareBtn.disabled = !(originalFile && revisedFile);
+                lucide.createIcons();
             }
-        }
 
-        function updateTaskStatus(index, text, color) {
-            const items = document.querySelectorAll('#tasksList .task-item');
-            if (items[index]) {
-                const statusEl = items[index].querySelector('.task-status');
-                if (statusEl) {
-                    statusEl.innerHTML = `<div class="status-dot ${color}"></div> ${text}`;
+            function removeOriginal(e) {
+                e.stopPropagation();
+                originalFile = null;
+                fileOriginal.value = '';
+                renderUploadBoxes();
+            }
+            function removeRevised(e) {
+                e.stopPropagation();
+                revisedFile = null;
+                fileRevised.value = '';
+                renderUploadBoxes();
+            }
+
+            function resetUpload() {
+                originalFile = null;
+                revisedFile = null;
+                fileOriginal.value = '';
+                fileRevised.value = '';
+                renderUploadBoxes();
+            }
+
+            // ================================================================
+            // RUN COMPARISON
+            // ================================================================
+            let lastResult = null;
+
+            async function runCompare() {
+                if (!originalFile || !revisedFile) return;
+
+                const btn = document.getElementById('compareBtn');
+                const btnText = document.getElementById('compareBtnText');
+                const spinner = document.getElementById('spinner');
+                const progressBar = document.getElementById('progressBar');
+                const progressFill = document.getElementById('progressFill');
+
+                btn.disabled = true;
+                btnText.textContent = 'Analyzing...';
+                spinner.style.display = 'block';
+                progressBar.style.display = 'block';
+                progressFill.style.width = '0%';
+
+                // Simulate progress
+                let progress = 0;
+                const progressInterval = setInterval(() => {
+                    progress = Math.min(progress + Math.random() * 12, 90);
+                    progressFill.style.width = progress + '%';
+                }, 500);
+
+                addActivity('SY', '#6366F1', 'System', 'Uploading & processing PDFs...');
+
+                // Update dashboard task statuses
+                updateTaskStatus(0, 'In progress', 'red');
+                updateTaskStatus(1, 'In progress', 'red');
+
+                const formData = new FormData();
+                formData.append('original', originalFile);
+                formData.append('revised', revisedFile);
+
+                try {
+                    const resp = await fetch('/api/compare', {
+                        method: 'POST',
+                        body: formData,
+                    });
+
+                    clearInterval(progressInterval);
+                    progressFill.style.width = '100%';
+
+                    if (!resp.ok) {
+                        const err = await resp.json();
+                        throw new Error(err.detail || 'Comparison failed');
+                    }
+
+                    const data = await resp.json();
+                    lastResult = data;
+
+                    // Update dashboard stats
+                    const total = data.total_pages || 0;
+                    const passed = data.pages ? data.pages.filter(p => p.status === 'PASS').length : 0;
+                    const failed = total - passed;
+
+                    document.getElementById('statTotal').textContent = total;
+                    document.getElementById('statMatches').textContent = passed;
+                    document.getElementById('statDiffs').textContent = failed;
+                    document.getElementById('doneTag').textContent = `Done ${Math.round((passed / total) * 100)}%`;
+
+                    // Update dashboard tasks
+                    updateTaskStatus(0, 'Done', 'green');
+                    updateTaskStatus(1, 'Done', 'green');
+                    updateTaskStatus(2, 'Done', 'green');
+
+                    addActivity('AI', '#EC4899', 'Groq AI',
+                        `Analysis complete: ${data.overall?.overall_change || 'N/A'} changes detected. Confidence: ${((data.overall?.confidence || 0) * 100).toFixed(0)}%`);
+
+                    // Update chart
+                    updateChart(data);
+
+                    // Show results nav item
+                    document.getElementById('navResults').style.display = 'flex';
+
+                    // Render results and switch to results view
+                    renderResults(data);
+                    switchView('results');
+
+                } catch (err) {
+                    clearInterval(progressInterval);
+                    addActivity('SY', '#EF4444', 'Error', err.message);
+                    updateTaskStatus(0, 'Failed', 'red');
+                } finally {
+                    btn.disabled = false;
+                    btnText.textContent = 'Compare PDFs';
+                    spinner.style.display = 'none';
+                    setTimeout(() => { progressBar.style.display = 'none'; }, 1000);
                 }
             }
-        }
 
-        function addActivity(initials, bg, name, desc) {
-            const feed = document.getElementById('activityFeed');
-            const time = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-            feed.innerHTML = `
+            function updateTaskStatus(index, text, color) {
+                const items = document.querySelectorAll('#tasksList .task-item');
+                if (items[index]) {
+                    const statusEl = items[index].querySelector('.task-status');
+                    if (statusEl) {
+                        statusEl.innerHTML = `<div class="status-dot ${color}"></div> ${text}`;
+                    }
+                }
+            }
+
+            function addActivity(initials, bg, name, desc) {
+                const feed = document.getElementById('activityFeed');
+                const time = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+                feed.innerHTML = `
             <div class="activity-item">
                 <div class="activity-avatar" style="background:${bg};">${initials}</div>
                 <div class="activity-content">
@@ -2328,80 +2686,80 @@
                     <div class="act-desc">${desc}</div>
                 </div>
             </div>` + feed.innerHTML;
-            lucide.createIcons();
-        }
+                lucide.createIcons();
+            }
 
-        function updateChart(data) {
-            if (!data.pages) return;
-            const labels = data.pages.map(p => 'Page ' + p.page);
-            const similarities = data.pages.map(p => (p.image_similarity * 100).toFixed(1));
+            function updateChart(data) {
+                if (!data.pages) return;
+                const labels = data.pages.map(p => 'Page ' + p.page);
+                const changes = data.pages.map(p => ((1 - (p.image_similarity || 0)) * 100).toFixed(1));
 
-            perfChart.data.labels = labels;
-            perfChart.data.datasets[0].data = similarities;
-            perfChart.data.datasets[0].label = 'Similarity %';
-            perfChart.data.datasets[1].data = data.pages.map(p => p.confidence ? (p.confidence * 100).toFixed(0) : 90);
-            perfChart.data.datasets[1].label = 'AI Confidence %';
-            perfChart.update();
-        }
+                perfChart.data.labels = labels;
+                perfChart.data.datasets[0].data = changes;
+                perfChart.data.datasets[0].label = 'Change %';
+                perfChart.data.datasets[1].data = data.pages.map(p => p.confidence ? (p.confidence * 100).toFixed(0) : 90);
+                perfChart.data.datasets[1].label = 'AI Confidence %';
+                perfChart.update();
+            }
 
-        // ================================================================
-        // RENDER RESULTS — Centralized Tabs with Page Headers
-        // ================================================================
-        function escapeHtml(str) {
-            const div = document.createElement('div');
-            div.appendChild(document.createTextNode(str));
-            return div.innerHTML;
-        }
+            // ================================================================
+            // RENDER RESULTS — Centralized Tabs with Page Headers
+            // ================================================================
+            function escapeHtml(str) {
+                const div = document.createElement('div');
+                div.appendChild(document.createTextNode(str));
+                return div.innerHTML;
+            }
 
-        // Simple markdown-ish rendering for AI chat replies
-        function renderMarkdown(text) {
-            let html = escapeHtml(text);
-            // Bold
-            html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-            // Bullet lists
-            html = html.replace(/^[-•] (.+)$/gm, '<li>$1</li>');
-            html = html.replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>');
-            // Numbered lists
-            html = html.replace(/^\d+\. (.+)$/gm, '<li>$1</li>');
-            // Inline code
-            html = html.replace(/`([^`]+)`/g, '<code style="background:#F1F5F9;padding:1px 5px;border-radius:4px;font-size:.82rem;">$1</code>');
-            // Line breaks
-            html = html.replace(/\n/g, '<br>');
-            return html;
-        }
+            // Simple markdown-ish rendering for AI chat replies
+            function renderMarkdown(text) {
+                let html = escapeHtml(text);
+                // Bold
+                html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+                // Bullet lists
+                html = html.replace(/^[-•] (.+)$/gm, '<li>$1</li>');
+                html = html.replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>');
+                // Numbered lists
+                html = html.replace(/^\d+\. (.+)$/gm, '<li>$1</li>');
+                // Inline code
+                html = html.replace(/`([^`]+)`/g, '<code style="background:#F1F5F9;padding:1px 5px;border-radius:4px;font-size:.82rem;">$1</code>');
+                // Line breaks
+                html = html.replace(/\n/g, '<br>');
+                return html;
+            }
 
-        // Chat history for AI conversation
-        let chatHistory = [];
+            // Chat history for AI conversation
+            let chatHistory = [];
 
-        function renderResults(data) {
-            const container = document.getElementById('resultsContainer');
-            chatHistory = []; // Reset chat on new comparison
+            function renderResults(data) {
+                const container = document.getElementById('resultsContainer');
+                chatHistory = []; // Reset chat on new comparison
 
-            const total = data.total_pages || 0;
-            const pages = data.pages || [];
-            const passed = pages.filter(p => p.status === 'PASS').length;
-            const changed = pages.filter(p => p.status === 'FAIL').length;
-            const avgConf = pages.length > 0
-                ? (pages.reduce((s, p) => s + (p.confidence || 0), 0) / pages.length * 100).toFixed(1)
-                : '0';
-            const totalTextChanges = pages.reduce((s, p) => s + (p.text_changes_count || 0), 0);
+                const total = data.total_pages || 0;
+                const pages = data.pages || [];
+                const passed = pages.filter(p => p.status === 'PASS').length;
+                const changed = pages.filter(p => p.status === 'FAIL').length;
+                const avgConf = pages.length > 0
+                    ? (pages.reduce((s, p) => s + (p.confidence || 0), 0) / pages.length * 100).toFixed(1)
+                    : '0';
+                const totalTextChanges = pages.reduce((s, p) => s + (p.text_changes_count || 0), 0);
 
-            const origPages = data.original_pages || total;
-            const revPages = data.revised_pages || total;
-            const pageCountNote = origPages !== revPages
-                ? `<div style="font-size:.82rem;color:var(--warning);margin-top:8px;display:flex;align-items:center;gap:6px;">
+                const origPages = data.original_pages || total;
+                const revPages = data.revised_pages || total;
+                const pageCountNote = origPages !== revPages
+                    ? `<div style="font-size:.82rem;color:var(--warning);margin-top:8px;display:flex;align-items:center;gap:6px;">
                 <i data-lucide="alert-circle" style="width:14px;height:14px;"></i>
                 Page count differs: Original has ${origPages} pages, Revised has ${revPages} pages
                </div>`
-                : '';
+                    : '';
 
-            // Count pages with visual diffs
-            const visualDiffPages = pages.filter(p =>
-                p.disposition === 'added' || p.disposition === 'removed' ||
-                (p.image_similarity !== undefined && p.image_similarity < 0.999)
-            ).length;
+                // Count pages with visual diffs
+                const visualDiffPages = pages.filter(p =>
+                    p.disposition === 'added' || p.disposition === 'removed' ||
+                    (p.image_similarity !== undefined && p.image_similarity < 0.999)
+                ).length;
 
-            let html = `
+                let html = `
         <!-- Summary -->
         <div class="result-summary">
             <div class="result-summary-top">
@@ -2466,72 +2824,72 @@
             </div>
         </div>`;
 
-            container.innerHTML = html;
-            lucide.createIcons();
+                container.innerHTML = html;
+                lucide.createIcons();
 
-            // Attach event listeners for collapsible page sections
-            document.querySelectorAll('.page-section-header').forEach(h => {
-                h.addEventListener('click', () => {
-                    h.classList.toggle('collapsed');
-                    const body = h.nextElementSibling;
-                    if (body) body.classList.toggle('collapsed');
+                // Attach event listeners for collapsible page sections
+                document.querySelectorAll('.page-section-header').forEach(h => {
+                    h.addEventListener('click', () => {
+                        h.classList.toggle('collapsed');
+                        const body = h.nextElementSibling;
+                        if (body) body.classList.toggle('collapsed');
+                    });
                 });
-            });
 
-            // Attach chat handlers
-            const chatInput = document.getElementById('chatInput');
-            const chatSendBtn = document.getElementById('chatSendBtn');
-            if (chatInput && chatSendBtn) {
-                chatSendBtn.addEventListener('click', () => sendChatMessage());
-                chatInput.addEventListener('keydown', (e) => {
-                    if (e.key === 'Enter' && !e.shiftKey) {
-                        e.preventDefault();
-                        sendChatMessage();
-                    }
-                });
-            }
-        }
-
-        function switchCentralTab(tabName, el) {
-            const wrapper = el.closest('.central-tabs');
-            wrapper.querySelectorAll('.central-tab-panel').forEach(p => p.classList.remove('active'));
-            wrapper.querySelectorAll('.central-tab-btn').forEach(b => b.classList.remove('active'));
-            const target = document.getElementById('ctab_' + tabName);
-            if (target) target.classList.add('active');
-            el.classList.add('active');
-            lucide.createIcons();
-
-            // Auto-scroll chat to bottom
-            if (tabName === 'aichat') {
-                const msgs = document.getElementById('chatMessages');
-                if (msgs) setTimeout(() => msgs.scrollTop = msgs.scrollHeight, 100);
-            }
-        }
-
-        // ---- All Text Diffs (centralized) ----
-        function renderAllTextDiffs(pages, data) {
-            // Filter only pages with actual text changes
-            const diffPages = pages ? pages.filter(p => p.text_changes_count > 0) : [];
-
-            if (diffPages.length === 0) {
-                return '<div style="padding:40px;text-align:center;color:var(--text-muted);">No text differences found.</div>';
+                // Attach chat handlers
+                const chatInput = document.getElementById('chatInput');
+                const chatSendBtn = document.getElementById('chatSendBtn');
+                if (chatInput && chatSendBtn) {
+                    chatSendBtn.addEventListener('click', () => sendChatMessage());
+                    chatInput.addEventListener('keydown', (e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                            e.preventDefault();
+                            sendChatMessage();
+                        }
+                    });
+                }
             }
 
-            let html = '';
-            diffPages.forEach((p) => {
-                const status = p.status || 'FAIL';
-                const lineDiff = p.line_diff || [];
-                const changesCount = p.text_changes_count || 0;
-                const addCount = lineDiff.filter(d => d.type === 'insert').length;
-                const delCount = lineDiff.filter(d => d.type === 'delete').length;
-                const replaceCount = lineDiff.filter(d => d.type === 'replace').length;
+            function switchCentralTab(tabName, el) {
+                const wrapper = el.closest('.central-tabs');
+                wrapper.querySelectorAll('.central-tab-panel').forEach(p => p.classList.remove('active'));
+                wrapper.querySelectorAll('.central-tab-btn').forEach(b => b.classList.remove('active'));
+                const target = document.getElementById('ctab_' + tabName);
+                if (target) target.classList.add('active');
+                el.classList.add('active');
+                lucide.createIcons();
 
-                let badgeClass = 'fail';
-                if (status === 'PASS') badgeClass = 'pass';
-                else if (status === 'ADDED') badgeClass = 'added';
-                else if (status === 'REMOVED') badgeClass = 'removed';
+                // Auto-scroll chat to bottom
+                if (tabName === 'aichat') {
+                    const msgs = document.getElementById('chatMessages');
+                    if (msgs) setTimeout(() => msgs.scrollTop = msgs.scrollHeight, 100);
+                }
+            }
 
-                html += `
+            // ---- All Text Diffs (centralized) ----
+            function renderAllTextDiffs(pages, data) {
+                // Filter only pages with actual text changes
+                const diffPages = pages ? pages.filter(p => p.text_changes_count > 0) : [];
+
+                if (diffPages.length === 0) {
+                    return '<div style="padding:40px;text-align:center;color:var(--text-muted);">No text differences found.</div>';
+                }
+
+                let html = '';
+                diffPages.forEach((p) => {
+                    const status = p.status || 'FAIL';
+                    const lineDiff = p.line_diff || [];
+                    const changesCount = p.text_changes_count || 0;
+                    const addCount = lineDiff.filter(d => d.type === 'insert').length;
+                    const delCount = lineDiff.filter(d => d.type === 'delete').length;
+                    const replaceCount = lineDiff.filter(d => d.type === 'replace').length;
+
+                    let badgeClass = 'fail';
+                    if (status === 'PASS') badgeClass = 'pass';
+                    else if (status === 'ADDED') badgeClass = 'added';
+                    else if (status === 'REMOVED') badgeClass = 'removed';
+
+                    html += `
             <div class="page-section">
                 <div class="page-section-header">
                     <div class="psh-left">
@@ -2541,42 +2899,42 @@
                     </div>
                     <div class="psh-right">
                         <span>Changes: <strong>${changesCount}</strong></span>
-                        <span>Similarity: <strong>${(p.image_similarity * 100).toFixed(1)}%</strong></span>
+                        <span>Changes: <strong>${((1 - p.image_similarity) * 100).toFixed(1)}%</strong></span>
                     </div>
                 </div>
                 <div class="page-section-body">
                     ${renderTextDiff(lineDiff, addCount, delCount, replaceCount, data.original_name, data.revised_name)}
                 </div>
             </div>`;
-            });
-            return html;
-        }
-
-        // ---- All Visual Diffs (centralized) ----
-        function renderAllVisualDiffs(pages) {
-            // Filter only pages with visual differences (or added/removed pages)
-            const diffPages = pages ? pages.filter(p =>
-                p.disposition === 'added' ||
-                p.disposition === 'removed' ||
-                (p.image_similarity !== undefined && p.image_similarity < 0.999)
-            ) : [];
-
-            if (diffPages.length === 0) {
-                return '<div style="padding:40px;text-align:center;color:var(--text-muted);">No visual differences found.</div>';
+                });
+                return html;
             }
 
-            let html = '';
-            diffPages.forEach((p) => {
-                const status = p.status || 'FAIL';
-                const regionCount = p.diff_region_count || 0;
-                const similarity = ((p.image_similarity || 0) * 100).toFixed(1);
+            // ---- All Visual Diffs (centralized) ----
+            function renderAllVisualDiffs(pages) {
+                // Filter only pages with visual differences (or added/removed pages)
+                const diffPages = pages ? pages.filter(p =>
+                    p.disposition === 'added' ||
+                    p.disposition === 'removed' ||
+                    (p.image_similarity !== undefined && p.image_similarity < 0.999)
+                ) : [];
 
-                let badgeClass = 'fail';
-                if (status === 'PASS') badgeClass = 'pass';
-                else if (status === 'ADDED') badgeClass = 'added';
-                else if (status === 'REMOVED') badgeClass = 'removed';
+                if (diffPages.length === 0) {
+                    return '<div style="padding:40px;text-align:center;color:var(--text-muted);">No visual differences found.</div>';
+                }
 
-                html += `
+                let html = '';
+                diffPages.forEach((p) => {
+                    const status = p.status || 'FAIL';
+                    const regionCount = p.diff_region_count || 0;
+                    const similarity = ((p.image_similarity || 0) * 100).toFixed(1);
+
+                    let badgeClass = 'fail';
+                    if (status === 'PASS') badgeClass = 'pass';
+                    else if (status === 'ADDED') badgeClass = 'added';
+                    else if (status === 'REMOVED') badgeClass = 'removed';
+
+                    html += `
             <div class="page-section">
                 <div class="page-section-header">
                     <div class="psh-left">
@@ -2585,7 +2943,7 @@
                         Page ${p.page}
                     </div>
                     <div class="psh-right">
-                        <span>Similarity: <strong>${similarity}%</strong></span>
+                        <span>Changes: <strong>${((1 - (p.image_similarity || 0)) * 100).toFixed(1)}%</strong></span>
                         ${regionCount > 0 ? `<span>Regions: <strong>${regionCount}</strong></span>` : ''}
                     </div>
                 </div>
@@ -2593,13 +2951,13 @@
                     ${renderImageDiff(p)}
                 </div>
             </div>`;
-            });
-            return html;
-        }
+                });
+                return html;
+            }
 
-        // ---- AI Chat Panel ----
-        function renderAIChatPanel() {
-            return `
+            // ---- AI Chat Panel ----
+            function renderAIChatPanel() {
+                return `
         <div class="chat-container">
             <div class="chat-messages" id="chatMessages">
                 <div class="chat-msg ai">
@@ -2629,119 +2987,119 @@
                 </button>
             </div>
         </div>`;
-        }
+            }
 
-        function askSuggestion(el) {
-            const text = el.textContent.trim();
-            const chatInput = document.getElementById('chatInput');
-            chatInput.value = text;
-            sendChatMessage();
-            // Hide suggestions after first use
-            const suggestions = document.getElementById('chatSuggestions');
-            if (suggestions) suggestions.style.display = 'none';
-        }
+            function askSuggestion(el) {
+                const text = el.textContent.trim();
+                const chatInput = document.getElementById('chatInput');
+                chatInput.value = text;
+                sendChatMessage();
+                // Hide suggestions after first use
+                const suggestions = document.getElementById('chatSuggestions');
+                if (suggestions) suggestions.style.display = 'none';
+            }
 
-        async function sendChatMessage() {
-            const chatInput = document.getElementById('chatInput');
-            const chatMessages = document.getElementById('chatMessages');
-            const chatSendBtn = document.getElementById('chatSendBtn');
-            const msg = chatInput.value.trim();
-            if (!msg || !lastResult) return;
+            async function sendChatMessage() {
+                const chatInput = document.getElementById('chatInput');
+                const chatMessages = document.getElementById('chatMessages');
+                const chatSendBtn = document.getElementById('chatSendBtn');
+                const msg = chatInput.value.trim();
+                if (!msg || !lastResult) return;
 
-            // Add user message to UI
-            chatMessages.innerHTML += `
+                // Add user message to UI
+                chatMessages.innerHTML += `
             <div class="chat-msg user">
                 <div class="chat-avatar user-av">You</div>
                 <div class="chat-bubble">${escapeHtml(msg)}</div>
             </div>`;
 
-            chatInput.value = '';
-            chatSendBtn.disabled = true;
+                chatInput.value = '';
+                chatSendBtn.disabled = true;
 
-            // Show typing indicator
-            const typingId = 'typing_' + Date.now();
-            chatMessages.innerHTML += `
+                // Show typing indicator
+                const typingId = 'typing_' + Date.now();
+                chatMessages.innerHTML += `
             <div class="chat-msg ai" id="${typingId}">
                 <div class="chat-avatar ai-av">AI</div>
                 <div class="chat-bubble">
                     <div class="chat-typing"><span></span><span></span><span></span></div>
                 </div>
             </div>`;
-            chatMessages.scrollTop = chatMessages.scrollHeight;
+                chatMessages.scrollTop = chatMessages.scrollHeight;
 
-            // Add to history
-            chatHistory.push({ role: 'user', content: msg });
+                // Add to history
+                chatHistory.push({ role: 'user', content: msg });
 
-            try {
-                // Build a lightweight context (strip base64 images to save bandwidth)
-                const ctxData = {
-                    total_pages: lastResult.total_pages,
-                    original_name: lastResult.original_name,
-                    revised_name: lastResult.revised_name,
-                    original_pages: lastResult.original_pages,
-                    revised_pages: lastResult.revised_pages,
-                    overall: lastResult.overall,
-                    pages: (lastResult.pages || []).map(p => ({
-                        page: p.page,
-                        status: p.status,
-                        image_similarity: p.image_similarity,
-                        text_changes_count: p.text_changes_count,
-                        diff_region_count: p.diff_region_count,
-                        confidence: p.confidence,
-                        disposition: p.disposition,
-                        text_changes: p.text_changes || [],
-                        ai_text_changes: p.ai_text_changes || [],
-                        ai_image_changes: p.ai_image_changes || [],
-                    }))
-                };
+                try {
+                    // Build a lightweight context (strip base64 images to save bandwidth)
+                    const ctxData = {
+                        total_pages: lastResult.total_pages,
+                        original_name: lastResult.original_name,
+                        revised_name: lastResult.revised_name,
+                        original_pages: lastResult.original_pages,
+                        revised_pages: lastResult.revised_pages,
+                        overall: lastResult.overall,
+                        pages: (lastResult.pages || []).map(p => ({
+                            page: p.page,
+                            status: p.status,
+                            image_similarity: p.image_similarity,
+                            text_changes_count: p.text_changes_count,
+                            diff_region_count: p.diff_region_count,
+                            confidence: p.confidence,
+                            disposition: p.disposition,
+                            text_changes: p.text_changes || [],
+                            ai_text_changes: p.ai_text_changes || [],
+                            ai_image_changes: p.ai_image_changes || [],
+                        }))
+                    };
 
-                const resp = await fetch('/api/chat', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        message: msg,
-                        context: ctxData,
-                        history: chatHistory.slice(-10),
-                    }),
-                });
+                    const resp = await fetch('/api/chat', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            message: msg,
+                            context: ctxData,
+                            history: chatHistory.slice(-10),
+                        }),
+                    });
 
-                const typingEl = document.getElementById(typingId);
+                    const typingEl = document.getElementById(typingId);
 
-                if (!resp.ok) {
-                    const err = await resp.json();
+                    if (!resp.ok) {
+                        const err = await resp.json();
+                        if (typingEl) typingEl.querySelector('.chat-bubble').innerHTML =
+                            `<span style="color:var(--danger);">Error: ${escapeHtml(err.detail || 'Failed to get response')}</span>`;
+                    } else {
+                        const result = await resp.json();
+                        chatHistory.push({ role: 'assistant', content: result.reply });
+                        if (typingEl) typingEl.querySelector('.chat-bubble').innerHTML = renderMarkdown(result.reply);
+                    }
+                } catch (err) {
+                    const typingEl = document.getElementById(typingId);
                     if (typingEl) typingEl.querySelector('.chat-bubble').innerHTML =
-                        `<span style="color:var(--danger);">Error: ${escapeHtml(err.detail || 'Failed to get response')}</span>`;
-                } else {
-                    const result = await resp.json();
-                    chatHistory.push({ role: 'assistant', content: result.reply });
-                    if (typingEl) typingEl.querySelector('.chat-bubble').innerHTML = renderMarkdown(result.reply);
+                        `<span style="color:var(--danger);">Connection error: ${escapeHtml(err.message)}</span>`;
                 }
-            } catch (err) {
-                const typingEl = document.getElementById(typingId);
-                if (typingEl) typingEl.querySelector('.chat-bubble').innerHTML =
-                    `<span style="color:var(--danger);">Connection error: ${escapeHtml(err.message)}</span>`;
+
+                chatSendBtn.disabled = false;
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+                lucide.createIcons();
             }
 
-            chatSendBtn.disabled = false;
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-            lucide.createIcons();
-        }
+            // ---- Text diff renderer ----
+            function renderTextDiff(lineDiff, addCount, delCount, replaceCount, origName, revName) {
+                if (!lineDiff || lineDiff.length === 0) {
+                    return '<div style="padding:24px;text-align:center;color:var(--text-muted);font-size:.88rem;">No text content to compare on this page.</div>';
+                }
 
-        // ---- Text diff renderer ----
-        function renderTextDiff(lineDiff, addCount, delCount, replaceCount, origName, revName) {
-            if (!lineDiff || lineDiff.length === 0) {
-                return '<div style="padding:24px;text-align:center;color:var(--text-muted);font-size:.88rem;">No text content to compare on this page.</div>';
-            }
-
-            const allEqual = lineDiff.every(d => d.type === 'equal');
-            if (allEqual) {
-                return `<div style="padding:24px;text-align:center;color:var(--success);font-size:.88rem;">
+                const allEqual = lineDiff.every(d => d.type === 'equal');
+                if (allEqual) {
+                    return `<div style="padding:24px;text-align:center;color:var(--success);font-size:.88rem;">
                 <i data-lucide="check-circle" style="width:18px;height:18px;display:inline;vertical-align:middle;margin-right:6px;"></i>
                 Text content is identical. No differences found.
             </div>`;
-            }
+                }
 
-            let html = `
+                let html = `
             <div class="diff-file-header">
                 <div class="diff-stats-inline">
                     <span class="ds-add">+${addCount + replaceCount} additions</span>
@@ -2761,86 +3119,86 @@
                 </colgroup>
                 <tbody>`;
 
-            lineDiff.forEach(d => {
-                const leftNum = d.left_line_no !== null ? d.left_line_no : '';
-                const rightNum = d.right_line_no !== null ? d.right_line_no : '';
-                const leftText = escapeHtml(d.left_content || '');
-                const rightText = escapeHtml(d.right_content || '');
+                lineDiff.forEach(d => {
+                    const leftNum = d.left_line_no !== null ? d.left_line_no : '';
+                    const rightNum = d.right_line_no !== null ? d.right_line_no : '';
+                    const leftText = escapeHtml(d.left_content || '');
+                    const rightText = escapeHtml(d.right_content || '');
 
-                if (d.type === 'equal') {
-                    html += `<tr class="diff-equal">
+                    if (d.type === 'equal') {
+                        html += `<tr class="diff-equal">
                     <td class="gutter gutter-left">${leftNum}</td>
                     <td class="code code-left">${leftText}</td>
                     <td class="diff-divider"></td>
                     <td class="gutter gutter-right">${rightNum}</td>
                     <td class="code code-right">${rightText}</td>
                 </tr>`;
-                } else if (d.type === 'delete') {
-                    html += `<tr class="diff-delete">
+                    } else if (d.type === 'delete') {
+                        html += `<tr class="diff-delete">
                     <td class="gutter gutter-left">${leftNum}</td>
                     <td class="code code-left">${leftText}</td>
                     <td class="diff-divider"></td>
                     <td class="gutter gutter-right"></td>
                     <td class="code code-right"></td>
                 </tr>`;
-                } else if (d.type === 'insert') {
-                    html += `<tr class="diff-insert">
+                    } else if (d.type === 'insert') {
+                        html += `<tr class="diff-insert">
                     <td class="gutter gutter-left"></td>
                     <td class="code code-left"></td>
                     <td class="diff-divider"></td>
                     <td class="gutter gutter-right">${rightNum}</td>
                     <td class="code code-right">${rightText}</td>
                 </tr>`;
-                } else if (d.type === 'replace') {
-                    html += `<tr class="diff-replace">
+                    } else if (d.type === 'replace') {
+                        html += `<tr class="diff-replace">
                     <td class="gutter gutter-left">${leftNum}</td>
                     <td class="code code-left">${leftText}</td>
                     <td class="diff-divider"></td>
                     <td class="gutter gutter-right">${rightNum}</td>
                     <td class="code code-right">${rightText}</td>
                 </tr>`;
-                }
-            });
+                    }
+                });
 
-            html += '</tbody></table></div>';
-            return html;
-        }
+                html += '</tbody></table></div>';
+                return html;
+            }
 
-        // ---- Visual diff renderer ----
-        function renderImageDiff(pageData) {
-            const origImg = pageData.original_image;
-            const revImg = pageData.revised_image;
-            const overlayImg = pageData.overlay_image;
-            const disposition = pageData.disposition || 'compared';
-            const regionCount = pageData.diff_region_count || 0;
-            const similarity = ((pageData.image_similarity || 0) * 100).toFixed(1);
+            // ---- Visual diff renderer ----
+            function renderImageDiff(pageData) {
+                const origImg = pageData.original_image;
+                const revImg = pageData.revised_image;
+                const overlayImg = pageData.overlay_image;
+                const disposition = pageData.disposition || 'compared';
+                const regionCount = pageData.diff_region_count || 0;
+                const similarity = ((pageData.image_similarity || 0) * 100).toFixed(1);
 
-            if (disposition === 'added') {
-                return `<div class="image-overlay-section">
+                if (disposition === 'added') {
+                    return `<div class="image-overlay-section">
                 <h5 style="color:var(--success);">
                     <i data-lucide="plus-circle" style="width:14px;height:14px;"></i>
                     New Page (only in revised document)
                 </h5>
                 ${revImg ? `<img src="${revImg}" alt="Added page" loading="lazy" style="max-width:70%;margin:0 auto;border:2px solid var(--success);">` : ''}
             </div>`;
-            }
+                }
 
-            if (disposition === 'removed') {
-                return `<div class="image-overlay-section">
+                if (disposition === 'removed') {
+                    return `<div class="image-overlay-section">
                 <h5 style="color:var(--danger);">
                     <i data-lucide="minus-circle" style="width:14px;height:14px;"></i>
                     Removed Page (only in original document)
                 </h5>
                 ${origImg ? `<img src="${origImg}" alt="Removed page" loading="lazy" style="max-width:70%;margin:0 auto;border:2px solid var(--danger);opacity:0.8;">` : ''}
             </div>`;
-            }
+                }
 
-            if (!overlayImg && !origImg && !revImg) {
-                return '<div style="padding:24px;text-align:center;color:var(--text-muted);font-size:.88rem;">No images available for this page.</div>';
-            }
+                if (!overlayImg && !origImg && !revImg) {
+                    return '<div style="padding:24px;text-align:center;color:var(--text-muted);font-size:.88rem;">No images available for this page.</div>';
+                }
 
-            if (similarity >= 99.9) {
-                return `
+                if (similarity >= 99.9) {
+                    return `
             <div class="image-overlay-section">
                 <!-- Side-by-Side (Active by default for identical pages) -->
                 <div id="sbs_view_${pageData.page}" class="sbs-view active" style="display:flex; margin-bottom: 20px;">
@@ -2856,14 +3214,14 @@
 
                 <div style="padding:16px;text-align:center;color:var(--success);font-size:.9rem;background:var(--success-light);border-radius:var(--radius-sm);border:1px solid var(--diff-add-hl);">
                     <i data-lucide="check-circle" style="width:18px;height:18px;display:inline;vertical-align:middle;margin-right:6px;"></i>
-                    Pages are visually identical (${similarity}% similarity). No visual differences found.
+                    Pages are visually identical (${((1 - (pageData.image_similarity || 0)) * 100).toFixed(1)}% change). No visual differences found.
                 </div>
             </div>`;
-            }
+                }
 
-            let html = '';
-            if (overlayImg) {
-                html += `
+                let html = '';
+                if (overlayImg) {
+                    html += `
             <div class="image-overlay-section">
                 <!-- Toggle -->
                 <div class="toggle-container">
@@ -2878,7 +3236,7 @@
                 <div id="overlay_view_${pageData.page}" class="overlay-view">
                     <h5>
                         <i data-lucide="scan-search" style="width:14px;height:14px;"></i>
-                        Difference Overlay &mdash; ${regionCount} change region${regionCount !== 1 ? 's' : ''} detected (${similarity}% similar)
+                        Difference Overlay &mdash; ${regionCount} change region${regionCount !== 1 ? 's' : ''} detected (${((1 - (pageData.image_similarity || 0)) * 100).toFixed(1)}% change)
                     </h5>
                     <p style="font-size:.78rem;color:var(--text-secondary);margin-bottom:12px;text-align:center;">
                         Changed areas are highlighted with red borders and a subtle tint. Text remains fully readable.
@@ -2898,55 +3256,55 @@
                     </div>
                 </div>
             </div>`;
-            } else {
-                html += '<div style="padding:24px;text-align:center;color:var(--text-muted);font-size:.88rem;">Visual diff overlay not available for this page.</div>';
-            }
-
-            return html;
-        }
-
-        // Toggle side-by-side view
-        function toggleSideBySide(page) {
-            const overlay = document.getElementById(`overlay_view_${page}`);
-            const sbs = document.getElementById(`sbs_view_${page}`);
-            const toggle = document.getElementById(`toggle_${page}`);
-
-            if (toggle && overlay && sbs) {
-                if (toggle.checked) {
-                    overlay.classList.add('hidden');
-                    sbs.classList.add('active');
                 } else {
-                    overlay.classList.remove('hidden');
-                    sbs.classList.remove('active');
+                    html += '<div style="padding:24px;text-align:center;color:var(--text-muted);font-size:.88rem;">Visual diff overlay not available for this page.</div>';
+                }
+
+                return html;
+            }
+
+            // Toggle side-by-side view
+            function toggleSideBySide(page) {
+                const overlay = document.getElementById(`overlay_view_${page}`);
+                const sbs = document.getElementById(`sbs_view_${page}`);
+                const toggle = document.getElementById(`toggle_${page}`);
+
+                if (toggle && overlay && sbs) {
+                    if (toggle.checked) {
+                        overlay.classList.add('hidden');
+                        sbs.classList.add('active');
+                    } else {
+                        overlay.classList.remove('hidden');
+                        sbs.classList.remove('active');
+                    }
                 }
             }
-        }
 
 
-        // ================================================================
-        // HISTORY VIEW LOGIC
-        // ================================================================
-        async function loadHistory() {
-            const container = document.getElementById('history-list');
-            container.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-muted);">Loading history...</div>';
+            // ================================================================
+            // HISTORY VIEW LOGIC
+            // ================================================================
+            async function loadHistory() {
+                const container = document.getElementById('history-list');
+                container.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-muted);">Loading history...</div>';
 
-            try {
-                const res = await fetch('/api/history');
-                if (!res.ok) throw new Error('Failed to load history');
-                const history = await res.json();
+                try {
+                    const res = await fetch('/api/history');
+                    if (!res.ok) throw new Error('Failed to load history');
+                    const history = await res.json();
 
-                if (history.length === 0) {
-                    container.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-muted);">No comparison history found.</div>';
-                    return;
-                }
+                    if (history.length === 0) {
+                        container.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-muted);">No comparison history found.</div>';
+                        return;
+                    }
 
-                let html = '';
-                history.forEach(item => {
-                    const date = new Date(item.timestamp).toLocaleString();
-                    let dotColor = 'green';
-                    if (item.status === 'CHANGES FOUND' || item.status === 'FAIL') dotColor = 'orange';
+                    let html = '';
+                    history.forEach(item => {
+                        const date = new Date(item.timestamp).toLocaleString();
+                        let dotColor = 'green';
+                        if (item.status === 'CHANGES FOUND' || item.status === 'FAIL') dotColor = 'orange';
 
-                    html += `
+                        html += `
                     <div class="task-item">
                         <div class="task-icon blue">
                             <i data-lucide="file-clock" style="width:20px; height:20px;"></i>
@@ -2964,55 +3322,196 @@
                              <i data-lucide="external-link" style="width:16px; height:16px;"></i>
                         </a>` : ''}
                     </div>`;
-                });
-                container.innerHTML = html;
+                    });
+                    container.innerHTML = html;
+                    lucide.createIcons();
+                } catch (err) {
+                    console.error(err);
+                    container.innerHTML = '<div style="padding:20px;text-align:center;color:var(--danger);">Failed to load history.</div>';
+                }
+            }
+            // ================================================================
+            // MODAL LOGIC
+            // ================================================================
+            function openImageModal(src, caption) {
+                const modal = document.getElementById('imageModal');
+                const modalImg = document.getElementById('modalImage');
+                const captionText = document.getElementById('modalCaption');
+
+                modal.style.display = "flex";
+                modalImg.src = src;
+                if (captionText) captionText.textContent = caption;
+
+                // Prevent body scrolling
+                document.body.style.overflow = 'hidden';
+            }
+
+            function closeImageModal() {
+                const modal = document.getElementById('imageModal');
+                modal.style.display = "none";
+                // Restore body scrolling
+                document.body.style.overflow = '';
+            }
+
+            // Close on Esc key
+            document.addEventListener('keydown', function (event) {
+                if (event.key === "Escape") {
+                    closeImageModal();
+                }
+            });
+
+            // ================================================================
+            // SIDEBAR TOGGLE LOGIC
+            // ================================================================
+            // ================================================================
+            // SIDEBAR TOGGLE LOGIC
+            // ================================================================
+            function toggleSidebar() {
+                const sidebar = document.getElementById('sidebar');
+                const main = document.getElementById('mainContent');
+                sidebar.classList.toggle('collapsed');
+                main.classList.toggle('collapsed');
+
+                // Re-render icons if needed ensuring everything is fine
                 lucide.createIcons();
-            } catch (err) {
-                console.error(err);
-                container.innerHTML = '<div style="padding:20px;text-align:center;color:var(--danger);">Failed to load history.</div>';
             }
-        }
-        // ================================================================
-        // MODAL LOGIC
-        // ================================================================
-        function openImageModal(src, caption) {
-            const modal = document.getElementById('imageModal');
-            const modalImg = document.getElementById('modalImage');
-            const captionText = document.getElementById('modalCaption');
 
-            modal.style.display = "flex";
-            modalImg.src = src;
-            if (captionText) captionText.textContent = caption;
+            // ================================================================
+            // LOGIN LOGIC
+            // ================================================================
+            function handleLogin(e) {
+                e.preventDefault();
+                // In a real app, you would validate credentials with backend here.
+                // For now, simple transition.
 
-            // Prevent body scrolling
-            document.body.style.overflow = 'hidden';
-        }
+                const loginPage = document.getElementById('loginPage');
+                const appContainer = document.getElementById('app-container');
 
-        function closeImageModal() {
-            const modal = document.getElementById('imageModal');
-            modal.style.display = "none";
-            // Restore body scrolling
-            document.body.style.overflow = '';
-        }
+                // Store login state
+                localStorage.setItem('isLoggedIn', 'true');
 
-        // Close on Esc key
-        document.addEventListener('keydown', function (event) {
-            if (event.key === "Escape") {
-                closeImageModal();
+                loginPage.classList.add('hidden');
+
+                // Wait for fade out
+                setTimeout(() => {
+                    loginPage.style.display = 'none';
+                    appContainer.style.display = 'flex'; // Restore flex layout
+
+                    // Trigger reflow
+                    void appContainer.offsetWidth;
+
+                    appContainer.classList.add('visible');
+
+                    // Initialize stuff if needed
+                    lucide.createIcons();
+
+                    // Only show welcome popup if this is a fresh login, not just page reload?
+                    // But for now behavior requested is "don't navigate to login page again".
+                    // We can skip welcome modal if it was already seen, but user didn't specify.
+                    // Let's keep welcome modal on explicit login action, but maybe skip it on auto-login.
+
+                    setTimeout(() => {
+                        const welcome = document.getElementById('welcomeModal');
+                        welcome.style.display = 'flex';
+                        // trigger reflow
+                        void welcome.offsetWidth;
+                        welcome.classList.add('active');
+                        lucide.createIcons();
+                    }, 400);
+
+                }, 500);
             }
-        });
 
-    </script>
+            function closeWelcomePopup() {
+                const welcome = document.getElementById('welcomeModal');
+                welcome.classList.remove('active');
+                setTimeout(() => {
+                    welcome.style.display = 'none';
+                }, 400);
+            }
 
-    <!-- Image Modal -->
-    <div id="imageModal" class="modal-overlay" onclick="closeImageModal()">
-        <div class="modal-content-wrapper" onclick="event.stopPropagation()">
-            <span class="close-modal" onclick="closeImageModal()">&times;</span>
-            <img class="modal-img" id="modalImage">
-            <div class="modal-caption" id="modalCaption"></div>
+            function handleLogout() {
+                localStorage.removeItem('isLoggedIn');
+
+                const loginPage = document.getElementById('loginPage');
+                const appContainer = document.getElementById('app-container');
+
+                appContainer.classList.remove('visible');
+
+                setTimeout(() => {
+                    appContainer.style.display = 'none';
+                    loginPage.style.display = 'flex';
+
+                    // Trigger reflow
+                    void loginPage.offsetWidth;
+
+                    loginPage.classList.remove('hidden');
+
+                    // Optional: Clear any form inputs if needed
+                    const form = document.querySelector('.login-container form');
+                    if (form) form.reset();
+                }, 500);
+            }
+
+            // Check login status on page load
+            (function checkLoginStatus() {
+                const isLoggedIn = localStorage.getItem('isLoggedIn');
+                if (isLoggedIn === 'true') {
+                    const loginPage = document.getElementById('loginPage');
+                    const appContainer = document.getElementById('app-container');
+
+                    // Immediately hide login, show app
+                    loginPage.classList.add('hidden'); // Ensure hidden class is applied for fade out style if any
+                    loginPage.style.display = 'none';
+
+                    appContainer.style.display = 'flex';
+                    // Force reflow
+                    void appContainer.offsetWidth;
+                    appContainer.classList.add('visible');
+
+                    // Initialize icons
+                    // We need to wait for DOMContentLoaded optimally, but this script is at end of body
+                    if (document.readyState === 'loading') {
+                        document.addEventListener('DOMContentLoaded', lucide.createIcons);
+                    } else {
+                        lucide.createIcons();
+                    }
+                }
+            })();
+
+        </script>
+
+
+        <!-- Image Modal -->
+        <div id="imageModal" class="modal-overlay" onclick="closeImageModal()">
+            <div class="modal-content-wrapper" onclick="event.stopPropagation()">
+                <span class="close-modal" onclick="closeImageModal()">&times;</span>
+                <img class="modal-img" id="modalImage">
+                <div class="modal-caption" id="modalCaption"></div>
+            </div>
+        </div>
+
+    </div> <!-- End App Container -->
+
+    <!-- Welcome Popup Modal -->
+    <div id="welcomeModal" class="welcome-overlay">
+        <div class="welcome-card-box">
+            <button class="welcome-close-btn" onclick="closeWelcomePopup()">
+                <i data-lucide="x" style="width:18px;height:18px;"></i>
+            </button>
+            <div class="welcome-icon-box">
+                <i data-lucide="sparkles" style="width:40px;height:40px;"></i>
+            </div>
+            <h2 style="font-size:1.75rem;font-weight:700;margin-bottom:12px;color:var(--text-primary);">Welcome to
+                AuditLens</h2>
+            <p style="color:var(--text-secondary);font-size:1rem;line-height:1.6;margin-bottom:32px;">
+                Your AI-powered document comparison workspace is ready. <br>Start by uploading your PDFs to begin
+                analysis.
+            </p>
+            <button class="btn-primary" onclick="closeWelcomePopup()"
+                style="width:100%;padding:14px;font-size:1rem;">Get Started</button>
         </div>
     </div>
-
 </body>
 
 </html>
