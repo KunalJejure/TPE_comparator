@@ -10,7 +10,7 @@ from reportlab.pdfgen import canvas
 
 from backend.services.pdf_parser import extract_text, page_to_image
 from backend.services.diff_engine import text_diff
-from backend.services.visual_diff import visual_diff
+from backend.services.visual_diff import generate_diff_overlay
 
 
 def _create_sample_pdfs(tmpdir: Path):
@@ -63,7 +63,7 @@ def test_text_and_visual_diff():
 
         img1 = page_to_image(str(pdf1), 0)
         img2 = page_to_image(str(pdf2), 0)
-        diff_img, similarity = visual_diff(img1, img2)
+        diff_img, similarity, region_count = generate_diff_overlay(img1, img2)
 
         assert diff_img is not None
         assert 0.0 <= similarity <= 1.0

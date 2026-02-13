@@ -8,6 +8,10 @@ from fastapi.templating import Jinja2Templates
 
 from backend.api.compare import router as compare_router
 from backend.api.chat import router as chat_router
+from backend.database import init_db
+
+# Initialize database
+init_db()
 
 # ---- Paths ----
 _BACKEND_DIR = Path(__file__).resolve().parent

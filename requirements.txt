@@ -21,4 +21,10 @@ python-dotenv
 reportlab
 
 # Streamlit (optional UI)
+# Streamlit (optional UI)
 streamlit
+
+# Auth
+authlib
+itsdangerous
+httpx

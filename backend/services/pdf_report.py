@@ -5,11 +5,9 @@ from __future__ import annotations
 import io
 import logging
 
-import cv2
-import numpy as np
 from PIL import Image
 
-from backend.services.visual_diff import generate_visual_diff
+from backend.services.visual_diff import generate_diff_overlay
 
 logger = logging.getLogger(__name__)
 
@@ -28,22 +26,15 @@ def generate_diff_pdf(
     page_results = []
 
     for idx in range(min_pages):
-        img1_cv = cv2.cvtColor(np.array(images1[idx].convert("RGB")), cv2.COLOR_RGB2BGR)
-        img2_cv = cv2.cvtColor(np.array(images2[idx].convert("RGB")), cv2.COLOR_RGB2BGR)
-
-        if img1_cv.shape != img2_cv.shape:
-            img2_cv = cv2.resize(img2_cv, (img1_cv.shape[1], img1_cv.shape[0]))
-
-        diff_bgr, similarity = generate_visual_diff(img1_cv, img2_cv)
-
-        diff_rgb = cv2.cvtColor(diff_bgr, cv2.COLOR_BGR2RGB)
-        diff_pil = Image.fromarray(diff_rgb)
+        diff_pil, similarity, _region_count = generate_diff_overlay(
+            images1[idx], images2[idx]
+        )
         diff_pil_images.append(diff_pil)
 
         page_results.append({
             "page": idx + 1,
             "similarity": similarity,
-            "status": "PASS" if similarity >= 90 else "FAIL",
+            "status": "PASS" if similarity >= 0.90 else "FAIL",
         })
 
     pdf_buffer = io.BytesIO()

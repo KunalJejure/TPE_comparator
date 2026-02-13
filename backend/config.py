@@ -19,6 +19,21 @@ GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 if not GROQ_API_KEY:
     logger.warning("GROQ_API_KEY is not set. AI analysis will be unavailable.")
 
+# ---- Azure AD ----
+AZURE_CLIENT_ID = os.getenv("AZURE_CLIENT_ID")
+AZURE_CLIENT_SECRET = os.getenv("AZURE_CLIENT_SECRET")
+AZURE_TENANT_ID = os.getenv("AZURE_TENANT_ID")
+SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret-key")
+
+# Construct the metadata URL or authorize/token URLs if tenant is common/organizations
+# Usually: https://login.microsoftonline.com/{tenant_id}/v2.0/.well-known/openid-configuration
+AZURE_METADATA_URL = f"https://login.microsoftonline.com/{AZURE_TENANT_ID}/v2.0/.well-known/openid-configuration"
+
+
 # ---- Paths ----
 UPLOAD_DIR = BASE_DIR / "uploads"
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+
+STATIC_DIR = BASE_DIR / "frontend" / "static"
+REPORTS_DIR = STATIC_DIR / "reports"
+REPORTS_DIR.mkdir(parents=True, exist_ok=True)

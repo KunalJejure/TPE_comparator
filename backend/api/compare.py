@@ -18,9 +18,10 @@ from typing import Dict, Any, List, Optional
 from PIL import Image
 from fastapi import APIRouter, UploadFile, File, HTTPException
 
-from backend.config import UPLOAD_DIR
+from backend.config import UPLOAD_DIR, REPORTS_DIR
 from backend.services.pdf_parser import extract_text, page_to_image
 from backend.services.visual_diff import generate_diff_overlay, compute_similarity
+from backend.database import add_comparison, get_recent_comparisons
 
 logger = logging.getLogger(__name__)
 
@@ -105,6 +106,12 @@ def _build_line_diff(text1: str, text2: str) -> List[Dict[str, Any]]:
 
 # ── Endpoint ─────────────────────────────────────────────────────────
 
+@router.get("/history")
+async def get_history() -> List[Dict[str, Any]]:
+    """Fetch the last 10 comparisons."""
+    return get_recent_comparisons(limit=10)
+
+
 @router.post("/compare")
 async def compare_pdfs(
     original: UploadFile = File(...),
@@ -153,6 +160,7 @@ async def compare_pdfs(
 
         # --- Per-page analysis ---
         page_results: List[Dict[str, Any]] = []
+        report_images: List[Image.Image] = []
 
         for page_idx in range(total_pages):
             page_num = page_idx + 1
@@ -221,6 +229,30 @@ async def compare_pdfs(
 
             page_results.append(page_data)
 
+            # -- Collect images for PDF report -- (ensure RGB)
+            to_append = None
+            if page_data.get("overlay_image"):
+                # Use the overlay image we just generated (it's already a PIL image in memory if we kept it)
+                # Wait, overlay_img variable holds the PIL image if img1 and img2 exist
+                # But if only one exists, we need to handle that.
+                # Let's restructure the logic slightly to ensure we capture the PIL image to append.
+                pass 
+
+            # Re-implementing this block to properly capture the image is cleaner than patching holes.
+            current_report_img = None
+            if img1 and img2:
+                # overlay_img is defined in the block above
+                current_report_img = overlay_img
+            elif img1:
+                current_report_img = img1
+            elif img2:
+                current_report_img = img2
+            
+            if current_report_img:
+                if current_report_img.mode != "RGB":
+                    current_report_img = current_report_img.convert("RGB")
+                report_images.append(current_report_img)
+
         # --- AI semantic comparison (graceful fallback) ---
         ai_result = _run_ai_comparison(texts_original, texts_revised, page_results)
 
@@ -237,8 +269,43 @@ async def compare_pdfs(
             ]
             p["confidence"] = ai_result["summary"].get("confidence", 0.0)
 
+        # --- Generate Report PDF ---
+        if report_images:
+            report_filename = f"{job_id}_diff.pdf"
+            report_path = REPORTS_DIR / report_filename
+            try:
+                report_images[0].save(
+                    str(report_path),
+                    "PDF",
+                    resolution=100.0,
+                    save_all=True,
+                    append_images=report_images[1:]
+                )
+                report_url = f"/static/reports/{report_filename}"
+            except Exception as e:
+                logger.error(f"Failed to generate PDF report: {e}")
+                report_url = None
+        else:
+            report_url = None
+
+            report_url = None
+
+        # --- Save to History ---
+        status = "NO CHANGES"
+        if any(p.get("status") != "PASS" for p in page_results):
+            status = "CHANGES FOUND"
+            
+        add_comparison(
+            orig_name, 
+            rev_name, 
+            total_pages, 
+            status, 
+            report_url
+        )
+
         return {
             "job_id": job_id,
+            "report_url": report_url,
             "total_pages": total_pages,
             "original_pages": orig_page_count,
             "revised_pages": rev_page_count,
