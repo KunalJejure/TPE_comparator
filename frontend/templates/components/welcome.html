@@ -1,0 +1,22 @@
+<!-- ============================================================
+     WELCOME POPUP MODAL COMPONENT
+     Contains: Welcome overlay shown after first login
+     ============================================================ -->
+<div id="welcomeModal" class="welcome-overlay">
+    <div class="welcome-card-box">
+        <button class="welcome-close-btn" onclick="closeWelcomePopup()">
+            <i data-lucide="x" style="width:18px;height:18px;"></i>
+        </button>
+        <div class="welcome-icon-box">
+            <i data-lucide="sparkles" style="width:40px;height:40px;"></i>
+        </div>
+        <h2 style="font-size:1.75rem;font-weight:700;margin-bottom:12px;color:var(--text-primary);">Welcome to
+            QALens</h2>
+        <p style="color:var(--text-secondary);font-size:1rem;line-height:1.6;margin-bottom:32px;">
+            Your AI-powered document comparison workspace is ready. <br>Start by uploading your PDFs to begin
+            analysis.
+        </p>
+        <button class="btn-primary" onclick="closeWelcomePopup()" style="width:100%;padding:14px;font-size:1rem;">Get
+            Started</button>
+    </div>
+</div>

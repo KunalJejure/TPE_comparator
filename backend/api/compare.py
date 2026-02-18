@@ -21,7 +21,7 @@ from fastapi import APIRouter, UploadFile, File, HTTPException
 from backend.config import UPLOAD_DIR, REPORTS_DIR
 from backend.services.pdf_parser import extract_text, page_to_image
 from backend.services.visual_diff import generate_diff_overlay, compute_similarity
-from backend.database import add_comparison, get_recent_comparisons
+from backend.database import add_comparison
 
 logger = logging.getLogger(__name__)
 
@@ -106,14 +106,9 @@ def _build_line_diff(text1: str, text2: str) -> List[Dict[str, Any]]:
 
 # ── Endpoint ─────────────────────────────────────────────────────────
 
-@router.get("/history")
-async def get_history() -> List[Dict[str, Any]]:
-    """Fetch the last 10 comparisons."""
-    return get_recent_comparisons(limit=10)
-
 
 @router.post("/compare")
-async def compare_pdfs(
+def compare_pdfs(
     original: UploadFile = File(...),
     revised: UploadFile = File(...),
 ) -> Dict[str, Any]:
@@ -291,19 +286,13 @@ async def compare_pdfs(
             report_url = None
 
         # --- Save to History ---
+        # --- Save to History ---
         status = "NO CHANGES"
         if any(p.get("status") != "PASS" for p in page_results):
             status = "CHANGES FOUND"
-            
-        add_comparison(
-            orig_name, 
-            rev_name, 
-            total_pages, 
-            status, 
-            report_url
-        )
 
-        return {
+        import json
+        result_content = {
             "job_id": job_id,
             "report_url": report_url,
             "total_pages": total_pages,
@@ -314,6 +303,24 @@ async def compare_pdfs(
             "overall": ai_result["summary"],
             "pages": page_results,
         }
+        
+        try:
+            result_json = json.dumps(result_content)
+        except Exception as e:
+            logger.error(f"Failed to serialize result content: {e}")
+            result_json = None
+
+        comp_id = add_comparison(
+            orig_name, 
+            rev_name, 
+            total_pages, 
+            status, 
+            report_url,
+            result_json
+        )
+
+        result_content["comparison_id"] = comp_id
+        return result_content
 
     except HTTPException:
         raise

@@ -1,0 +1,64 @@
+<!-- ============================================================
+     SIDEBAR COMPONENT
+     Contains: Logo, Navigation items, Footer links
+     ============================================================ -->
+<aside class="sidebar" id="sidebar">
+    <div class="sidebar-toggle" onclick="toggleSidebar()">
+        <i data-lucide="chevron-left" style="width:14px; height:14px;"></i>
+    </div>
+
+    <img src="{{ url_for('static', path='images/xLM.svg') }}" alt="Logo" style="width:200px; height:60px;">
+    <div class="sidebar-logo">
+        <!--<div class="logo-icon">
+         <i data-lucide="file-diff" style="width:20px; height:20px;"></i> 
+           
+        </div> 
+        <span>AuditLens</span>-->
+    </div>
+
+    <nav class="sidebar-nav">
+        <a class="nav-item active" data-view="dashboard" onclick="switchView('dashboard')" data-tooltip="Dashboard">
+            <i data-lucide="layout-dashboard" style="width:18px; height:18px;"></i>
+            <span class="nav-text">Dashboard</span>
+        </a>
+        <a class="nav-item" data-view="compare" onclick="switchView('compare')" data-tooltip="Compare">
+            <i data-lucide="git-compare" style="width:18px; height:18px;"></i>
+            <span class="nav-text">Compare</span>
+            <span class="badge">+</span>
+        </a>
+        <a class="nav-item" data-view="results" onclick="switchView('results')" id="navResults" style="display:none;"
+            data-tooltip="Results">
+            <i data-lucide="split" style="width:18px; height:18px;"></i>
+            <span class="nav-text">Results</span>
+        </a>
+        <a class="nav-item" data-view="reports" onclick="switchView('reports')" data-tooltip="Reports">
+            <i data-lucide="file-bar-chart" style="width:18px; height:18px;"></i>
+            <span class="nav-text">Reports</span>
+        </a>
+
+        <!-- Requalifications Section -->
+        <div class="nav-divider"></div>
+        <div class="nav-section-label">Batch Operations</div>
+        <a class="nav-item" data-view="requalifications" onclick="switchView('requalifications')"
+            data-tooltip="Requalifications">
+            <i data-lucide="layers" style="width:18px; height:18px;"></i>
+            <span class="nav-text">Requalifications</span>
+        </a>
+
+        <a class="nav-item" data-tooltip="Settings">
+            <i data-lucide="settings" style="width:18px; height:18px;"></i>
+            <span class="nav-text">Settings</span>
+        </a>
+    </nav>
+
+    <div class="sidebar-footer">
+        <a class="nav-item" data-tooltip="Help & Information">
+            <i data-lucide="help-circle" style="width:18px; height:18px;"></i>
+            <span class="nav-text">Help &amp; information</span>
+        </a>
+        <a class="nav-item" data-tooltip="Log out" onclick="handleLogout()">
+            <i data-lucide="log-out" style="width:18px; height:18px;"></i>
+            <span class="nav-text">Log out</span>
+        </a>
+    </div>
+</aside>

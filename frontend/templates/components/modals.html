@@ -1,0 +1,11 @@
+<!-- ============================================================
+     IMAGE MODAL COMPONENT
+     Contains: Image preview overlay (within app-container)
+     ============================================================ -->
+<div id="imageModal" class="modal-overlay" onclick="closeImageModal()">
+    <div class="modal-content-wrapper" onclick="event.stopPropagation()">
+        <span class="close-modal" onclick="closeImageModal()">&times;</span>
+        <img class="modal-img" id="modalImage">
+        <div class="modal-caption" id="modalCaption"></div>
+    </div>
+</div>

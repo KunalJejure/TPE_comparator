@@ -26,6 +26,7 @@ uploads/
 outputs/
 *.log
 *.swp
+history.db
 
 # Agent
 .agent/

@@ -1,0 +1,172 @@
+<!-- ============================================================
+     REQUALIFICATIONS VIEW COMPONENT
+     States: Session List | New Session | Viewing Results
+     ============================================================ -->
+<div class="view" id="view-requalifications">
+    <div class="requal-container">
+
+        <!-- ============================================================
+             STATE 1: SESSION LIST (default landing)
+             ============================================================ -->
+        <div id="requalSessionList">
+
+            <!-- Top row: title + new session button -->
+            <div class="requal-top-bar">
+                <div>
+                    <h3 class="requal-page-title">Requalification Sessions</h3>
+                    <p class="requal-page-subtitle">Manage batch PDF comparisons by session</p>
+                </div>
+                <button class="btn-compare" onclick="showNewSessionForm()">
+                    <i data-lucide="plus" style="width:18px; height:18px;"></i>
+                    New Session
+                </button>
+            </div>
+
+            <!-- Session Name Modal -->
+            <div class="requal-name-modal" id="requalNameModal" style="display:none;">
+                <div class="requal-name-card">
+                    <div class="requal-name-card-header">
+                        <h4>
+                            <i data-lucide="folder-plus" style="width:20px; height:20px;"></i>
+                            New Requalification Session
+                        </h4>
+                        <button class="requal-name-close" onclick="hideNewSessionForm()">
+                            <i data-lucide="x" style="width:18px; height:18px;"></i>
+                        </button>
+                    </div>
+                    <div class="requal-name-card-body">
+                        <label class="requal-input-label" for="requalSessionName">Session Name</label>
+                        <p class="requal-input-hint">Name must include the month and year (e.g., "February 2026 Batch
+                            1")</p>
+                        <input type="text" id="requalSessionName" class="requal-input"
+                            placeholder="e.g., February 2026 Requalification" autocomplete="off" />
+                        <div class="requal-name-error" id="requalNameError" style="display:none;">
+                            <i data-lucide="alert-circle" style="width:14px; height:14px;"></i>
+                            <span id="requalNameErrorText">Name must include a month and year</span>
+                        </div>
+                        <button class="btn-compare requal-start-btn" onclick="startNewSession()" id="requalStartBtn">
+                            <i data-lucide="arrow-right" style="width:18px; height:18px;"></i>
+                            Continue to Upload
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Past sessions list -->
+            <div id="requalSessionCards" class="requal-sessions-grid">
+                <!-- Filled dynamically -->
+                <div class="requal-empty-state" id="requalEmptyState" style="display:none;">
+                    <div class="requal-empty-icon">
+                        <i data-lucide="inbox" style="width:40px; height:40px;"></i>
+                    </div>
+                    <h4>No sessions yet</h4>
+                    <p>Create your first requalification session to compare multiple PDF pairs at once.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================================
+             STATE 2: ACTIVE SESSION (upload + compare)
+             ============================================================ -->
+        <div id="requalActiveSession" style="display:none;">
+
+            <!-- Session header -->
+            <div class="requal-session-header">
+                <button class="requal-back-btn" onclick="backToSessionList()">
+                    <i data-lucide="arrow-left" style="width:18px; height:18px;"></i>
+                    Back
+                </button>
+                <div class="requal-session-title">
+                    <h3 id="requalActiveSessionName">Session</h3>
+                    <span class="slot-badge" id="requalActiveSessionBadge">New</span>
+                </div>
+            </div>
+
+            <!-- Info Banner -->
+            <div class="requal-info-banner">
+                <div class="requal-info-icon">
+                    <i data-lucide="layers" style="width:22px; height:22px;"></i>
+                </div>
+                <div class="requal-info-content">
+                    <h4>Batch PDF Requalification</h4>
+                    <p>Upload original and revised PDFs for each pair. Add as many comparison slots as needed, then run
+                        all comparisons at once.</p>
+                </div>
+            </div>
+
+            <!-- Comparison Slots Container -->
+            <div id="requalSlots">
+                <!-- Slot 1 (default) — dynamically managed by JS -->
+            </div>
+
+            <!-- Add Slot Button -->
+            <button class="requal-add-btn" onclick="addRequalSlot()">
+                <i data-lucide="plus-circle" style="width:20px; height:20px;"></i>
+                Add Comparison Pair
+            </button>
+
+            <!-- Actions Bar -->
+            <div class="requal-actions-bar">
+                <div class="requal-actions-info">
+                    <span id="requalPairCount">1 pair</span> configured &bull;
+                    <span id="requalReadyCount">0 ready</span>
+                </div>
+                <div class="requal-actions-buttons">
+                    <button class="btn-reset" onclick="resetAllRequalSlots()">
+                        <i data-lucide="refresh-cw" style="width:16px; height:16px;"></i>
+                        Reset All
+                    </button>
+                    <button class="btn-compare requal-run-btn" id="requalRunBtn" disabled
+                        onclick="runAllRequalifications()">
+                        <i data-lucide="play" style="width:18px; height:18px;"></i>
+                        <span id="requalRunBtnText">Run All Comparisons</span>
+                        <div class="spinner" id="requalSpinner"></div>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Progress Section -->
+            <div class="requal-progress-section" id="requalProgressSection" style="display:none;">
+                <div class="requal-progress-header">
+                    <h4>
+                        <i data-lucide="loader" style="width:18px; height:18px;" class="requal-spin-icon"></i>
+                        Batch Comparison Progress
+                    </h4>
+                    <span id="requalProgressText">0 / 0 completed</span>
+                </div>
+                <div class="progress-bar" style="display:block;">
+                    <div class="progress-fill" id="requalProgressFill" style="width:0%;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================================
+             STATE 3: VIEWING RESULTS
+             ============================================================ -->
+        <div id="requalViewResults" style="display:none;">
+
+            <!-- Results header -->
+            <div class="requal-session-header">
+                <button class="requal-back-btn" onclick="backToSessionList()">
+                    <i data-lucide="arrow-left" style="width:18px; height:18px;"></i>
+                    Back to Sessions
+                </button>
+                <div class="requal-session-title">
+                    <h3 id="requalResultsSessionName">Session Results</h3>
+                    <span class="slot-badge" id="requalResultsBadge">Completed</span>
+                </div>
+            </div>
+
+            <!-- Pairs List -->
+            <div id="requalPairsList" class="requal-pairs-list">
+                <!-- Filled dynamically -->
+            </div>
+
+            <!-- Results Container (shown when a pair is expanded) -->
+            <div id="requalResultsContent" class="requal-results-content" style="display:none;">
+                <!-- Filled dynamically with the same rich result rendering as the main Results view -->
+            </div>
+        </div>
+
+    </div>
+</div>

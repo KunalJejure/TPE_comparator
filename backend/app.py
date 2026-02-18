@@ -5,9 +5,14 @@ from pathlib import Path
 from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from starlette.middleware.sessions import SessionMiddleware
 
 from backend.api.compare import router as compare_router
 from backend.api.chat import router as chat_router
+from backend.api.reports import router as reports_router
+from backend.api.requalifications import router as requal_router
+from backend.api.auth import router as auth_router
+from backend.config import SECRET_KEY
 from backend.database import init_db
 
 # Initialize database
@@ -25,6 +30,16 @@ app = FastAPI(
     description="Enterprise-grade PDF comparison system",
 )
 
+# Session middleware — required for OAuth2 state + user sessions
+app.add_middleware(
+    SessionMiddleware,
+    secret_key=SECRET_KEY,
+    session_cookie="qalens_session",
+    max_age=86400,          # 24-hour session
+    same_site="lax",
+    https_only=False,       # Set True in production with HTTPS
+)
+
 # Static files (CSS, JS, images)
 _STATIC_DIR = _FRONTEND_DIR / "static"
 _STATIC_DIR.mkdir(parents=True, exist_ok=True)
@@ -37,6 +52,9 @@ templates = Jinja2Templates(directory=str(_TEMPLATES_DIR))
 # API routes
 app.include_router(compare_router, prefix="/api")
 app.include_router(chat_router, prefix="/api")
+app.include_router(reports_router, prefix="/api/reports")
+app.include_router(requal_router, prefix="/api/requalifications")
+app.include_router(auth_router)
 
 
 @app.get("/health")
@@ -46,4 +64,10 @@ def health_check():
 
 @app.get("/")
 def home(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request})
+    # Pass session user info to template for SSO-aware rendering
+    user = request.session.get("user")
+    return templates.TemplateResponse("index.html", {
+        "request": request,
+        "user": user,
+        "sso_authenticated": user is not None,
+    })

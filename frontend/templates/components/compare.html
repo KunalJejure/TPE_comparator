@@ -1,0 +1,90 @@
+<!-- ============================================================
+     COMPARE VIEW COMPONENT
+     Contains: PDF upload area, Compare button, Activity feed
+     ============================================================ -->
+<div class="view" id="view-compare">
+    <div class="compare-container">
+
+        <!-- Upload Section -->
+        <div class="upload-section">
+            <h3>Upload PDFs for Comparison</h3>
+            <p class="upload-subtitle">Upload the original and revised PDF documents. We'll perform text,
+                visual, and AI-powered analysis.</p>
+
+            <div class="upload-grid">
+                <!-- Original PDF -->
+                <div class="upload-box" id="dropOriginal" onclick="document.getElementById('fileOriginal').click()">
+                    <div class="upload-box-icon original">
+                        <i data-lucide="file-minus" style="width:24px; height:24px;"></i>
+                    </div>
+                    <h4>Original PDF</h4>
+                    <p>Drop your <strong>original</strong> document here<br />or <span class="browse-link">browse
+                            files</span></p>
+                    <div id="fileInfoOriginal"></div>
+                </div>
+                <input type="file" id="fileOriginal" accept=".pdf" hidden />
+
+                <!-- Revised PDF -->
+                <div class="upload-box" id="dropRevised" onclick="document.getElementById('fileRevised').click()">
+                    <div class="upload-box-icon revised">
+                        <i data-lucide="file-plus" style="width:24px; height:24px;"></i>
+                    </div>
+                    <h4>Revised PDF</h4>
+                    <p>Drop your <strong>revised</strong> document here<br />or <span class="browse-link">browse
+                            files</span></p>
+                    <div id="fileInfoRevised"></div>
+                </div>
+                <input type="file" id="fileRevised" accept=".pdf" hidden />
+            </div>
+
+            <div class="compare-actions">
+                <button class="btn-compare" id="compareBtn" disabled onclick="runCompare()">
+                    <i data-lucide="play" style="width:18px; height:18px;"></i>
+                    <span id="compareBtnText">Compare PDFs</span>
+                    <div class="spinner" id="spinner"></div>
+                </button>
+                <button class="btn-reset" onclick="resetUpload()">
+                    <i data-lucide="refresh-cw" style="width:16px; height:16px;"></i>
+                    Reset
+                </button>
+            </div>
+
+            <div class="progress-bar" id="progressBar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+        </div>
+
+        <!-- Activity Feed -->
+        <div class="activity-section">
+            <h3>Activity Log</h3>
+
+            <div class="activity-item">
+                <div class="activity-avatar" style="background: #6366F1;">SY</div>
+                <div class="activity-content">
+                    <div class="act-header">
+                        <span class="act-name">System</span>
+                        <span class="act-time">Now</span>
+                    </div>
+                    <div class="act-desc">Application ready. Upload two PDFs to start comparison.</div>
+                </div>
+            </div>
+
+            <div class="activity-item">
+                <div class="activity-avatar" style="background: #EC4899;">AI</div>
+                <div class="activity-content">
+                    <div class="act-header">
+                        <span class="act-name">Groq AI</span>
+                        <span class="act-time">--</span>
+                    </div>
+                    <div class="msg-bubble">
+                        Upload two PDFs and I'll analyze the semantic, visual, and image-level differences
+                        for
+                        you. Results appear in a GitHub-style side-by-side diff view.
+                    </div>
+                </div>
+            </div>
+
+            <div id="activityFeed"></div>
+        </div>
+    </div>
+</div>
