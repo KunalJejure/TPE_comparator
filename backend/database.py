@@ -1,6 +1,7 @@
 import sqlite3
 import logging
 import json
+import os
 from pathlib import Path
 from datetime import datetime
 from threading import Lock
@@ -9,6 +10,9 @@ logger = logging.getLogger(__name__)
 
 DB_PATH = Path(__file__).resolve().parent.parent / "history.db"
 _db_lock = Lock()
+
+# Maximum number of comparison results to keep (older ones are auto-pruned)
+MAX_RESULTS = 10
 
 def init_db():
     """Initialize the SQLite database and create tables if they don't exist."""
@@ -88,10 +92,60 @@ def add_comparison(original, revised, pages, status, report_url=None, result_jso
             new_id = cursor.lastrowid
             conn.commit()
             conn.close()
-            return new_id
+
+        # Auto-prune: keep only the last MAX_RESULTS comparisons
+        prune_old_comparisons()
+
+        return new_id
     except Exception as e:
         logger.error("Failed to add comparison to history: %s", e)
         return None
+
+
+def prune_old_comparisons():
+    """Delete comparisons beyond the most recent MAX_RESULTS, including their report PDFs."""
+    try:
+        with _db_lock:
+            conn = sqlite3.connect(DB_PATH)
+            cursor = conn.cursor()
+
+            # Find IDs and report URLs of rows to delete
+            cursor.execute("""
+                SELECT id, report_url FROM comparisons
+                WHERE id NOT IN (
+                    SELECT id FROM comparisons ORDER BY id DESC LIMIT ?
+                )
+            """, (MAX_RESULTS,))
+            old_rows = cursor.fetchall()
+
+            if not old_rows:
+                conn.close()
+                return
+
+            # Delete associated report PDFs from disk
+            from backend.config import REPORTS_DIR
+            for row in old_rows:
+                report_url = row[1]
+                if report_url:
+                    # Extract filename from URL like /static/reports/xxx_diff.pdf
+                    filename = report_url.split("/")[-1] if "/" in report_url else report_url
+                    report_path = REPORTS_DIR / filename
+                    if report_path.exists():
+                        try:
+                            report_path.unlink()
+                            logger.info("Pruned old report: %s", filename)
+                        except Exception as e:
+                            logger.warning("Could not delete report %s: %s", filename, e)
+
+            # Delete old comparison records from DB
+            old_ids = [row[0] for row in old_rows]
+            placeholders = ",".join("?" * len(old_ids))
+            cursor.execute(f"DELETE FROM comparisons WHERE id IN ({placeholders})", old_ids)
+            conn.commit()
+            conn.close()
+            logger.info("Pruned %d old comparison(s), keeping the last %d.", len(old_ids), MAX_RESULTS)
+    except Exception as e:
+        logger.error("Failed to prune old comparisons: %s", e)
 
 def get_comparison_result(comparison_id):
     """Fetch the full result JSON for a specific comparison."""

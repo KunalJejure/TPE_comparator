@@ -9,7 +9,7 @@ pymupdf
 Pillow
 
 # Image processing / visual diff
-opencv-python
+opencv-python-headless
 numpy
 scikit-image
 
@@ -19,10 +19,6 @@ python-dotenv
 
 # PDF report generation
 reportlab
-
-# Streamlit (optional UI)
-# Streamlit (optional UI)
-streamlit
 
 # Auth
 authlib

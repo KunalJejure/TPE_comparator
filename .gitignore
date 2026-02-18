@@ -24,6 +24,7 @@ Thumbs.db
 # Project Specific
 uploads/
 outputs/
+frontend/static/reports/
 *.log
 *.swp
 history.db
