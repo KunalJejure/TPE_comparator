@@ -5,7 +5,9 @@ Only users from the configured tenant (company domain) can log in.
 """
 
 import logging
+import os
 from datetime import datetime
+from typing import Optional
 
 from fastapi import APIRouter, Request, HTTPException
 from fastapi.responses import RedirectResponse, JSONResponse
@@ -43,10 +45,10 @@ if _SSO_ENABLED:
             "scope": "openid email profile",
         },
     )
-    logger.info("✅ Microsoft Entra ID SSO is enabled (Tenant: %s)", AZURE_TENANT_ID)
+    logger.info("Microsoft Entra ID SSO is enabled (Tenant: %s)", AZURE_TENANT_ID)
 else:
     logger.warning(
-        "⚠️  SSO is NOT configured. Set AZURE_CLIENT_ID, AZURE_CLIENT_SECRET, "
+        "SSO is NOT configured. Set AZURE_CLIENT_ID, AZURE_CLIENT_SECRET, "
         "and AZURE_TENANT_ID in .env to enable it."
     )
 
@@ -55,10 +57,8 @@ else:
 #  Helpers
 # ------------------------------------------------------------------ #
 
-ALLOWED_DOMAIN: str | None = None  # Will be populated from env if needed
 # You can add ALLOWED_DOMAIN=yourcompany.com to .env to restrict by email domain
-import os
-ALLOWED_DOMAIN = os.getenv("ALLOWED_DOMAIN", None)
+ALLOWED_DOMAIN: Optional[str] = os.getenv("ALLOWED_DOMAIN", None)
 
 
 def _validate_user(user_info: dict):
