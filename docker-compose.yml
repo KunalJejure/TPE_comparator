@@ -5,7 +5,7 @@ services:
     build: .
     container_name: fsb_tpe_comparator
     ports:
-      - "8000:8000"
+      - "8080:8080"
     volumes:
       - ./history.db:/app/history.db
       - ./uploads:/app/uploads
