@@ -8,5 +8,5 @@ files = {
 data = {
     'scope_items': '[]'
 }
-r = requests.post('http://127.0.0.1:8000/api/scope-validator/validate', files=files, data=data)
+r = requests.post('http://127.0.0.1:8080/api/scope-validator/validate', files=files, data=data)
 print(r.status_code, r.text)
