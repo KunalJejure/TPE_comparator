@@ -38,19 +38,58 @@ def _ensure_same_size(img1: np.ndarray, img2: np.ndarray) -> Tuple[np.ndarray, n
 
 
 def _compute_diff_regions(gray1: np.ndarray, gray2: np.ndarray,
-                          threshold: int = 25):
+                          threshold: int = 25,
+                          mask_header_footer: bool = True,
+                          sensitivity: str = "medium"):
     """Use SSIM to find changed regions and return (score, contours).
 
     Steps:
-        1. Compute SSIM with a full diff map.
-        2. Threshold the diff map to isolate changed pixels.
-        3. Use morphological ops to group nearby changed pixels into regions.
-        4. Extract contours of those regions.
+        1. Optionally mask header/footer regions (top/bottom 8%).
+        2. Apply light Gaussian pre-blur to suppress anti-aliasing noise.
+        3. Compute SSIM with a full diff map.
+        4. Threshold the diff map to isolate changed pixels.
+        5. Use morphological ops to group nearby changed pixels into regions.
+        6. Extract contours of those regions.
+
+    Args:
+        sensitivity: "low" (draft, threshold=40), "medium" (default, 25),
+                     "high" (pixel-perfect, 15).
+        mask_header_footer: If True, mask top/bottom 8% of the page to
+                            ignore page numbers and running headers.
     """
-    score, diff_map = ssim(gray1, gray2, full=True)
+    # ── Adaptive threshold based on sensitivity ──
+    _THRESHOLDS = {"low": 40, "medium": 25, "high": 15}
+    threshold = _THRESHOLDS.get(sensitivity, threshold)
+
+    h, w = gray1.shape[:2]
+
+    # ── Header/footer masking (Step 2) ──
+    # Mask top/bottom 8% of page to ignore page numbers, running
+    # headers, date stamps, and other repeated boilerplate.
+    header_footer_margin = 0
+    if mask_header_footer:
+        header_footer_margin = int(h * 0.08)
+
+    # ── Gaussian pre-blur (Step 5) ──
+    # Suppress sub-pixel anti-aliasing and font rendering differences
+    # that produce false-positive diff regions.
+    gray1_proc = cv2.GaussianBlur(gray1, (3, 3), 0.5)
+    gray2_proc = cv2.GaussianBlur(gray2, (3, 3), 0.5)
+
+    # Apply header/footer mask — zero out margins so SSIM ignores them
+    if header_footer_margin > 0:
+        gray1_proc[:header_footer_margin, :] = gray2_proc[:header_footer_margin, :] = 128
+        gray1_proc[h - header_footer_margin:, :] = gray2_proc[h - header_footer_margin:, :] = 128
+
+    score, diff_map = ssim(gray1_proc, gray2_proc, full=True)
 
     # Invert so changed areas are bright (255)
     diff_uint8 = ((1.0 - diff_map) * 255).astype("uint8")
+
+    # Zero out header/footer in the diff map so no contours are detected there
+    if header_footer_margin > 0:
+        diff_uint8[:header_footer_margin, :] = 0
+        diff_uint8[h - header_footer_margin:, :] = 0
 
     # Threshold — only significant changes
     _, binary = cv2.threshold(diff_uint8, threshold, 255, cv2.THRESH_BINARY)
@@ -114,18 +153,19 @@ def _draw_bounding_boxes(canvas: np.ndarray, contours,
 # ── Public API ───────────────────────────────────────────────────────
 
 def generate_diff_overlay(img1: Image.Image, img2: Image.Image):
-    """Create a single, readable diff overlay image.
+    """Create diff overlay images for comparison views.
 
-    The *revised* page is used as the base.  Changed regions get a subtle
-    semi-transparent coloured highlight **and** a crisp coloured border so
-    the text underneath stays perfectly legible.
+    Generates:
+      1. A combined overlay (revised base + red highlights)
+      2. Original page with red highlights
+      3. Revised page with yellow highlights
 
     Args:
         img1: Original page (PIL).
         img2: Revised page (PIL).
 
     Returns:
-        Tuple of (overlay_pil_image, similarity_0_to_1, region_count).
+        Tuple of (overlay_pil, orig_highlight_pil, rev_highlight_pil, similarity, region_count).
     """
     cv1 = cv2.cvtColor(np.array(img1.convert("RGB")), cv2.COLOR_RGB2BGR)
     cv2_img = cv2.cvtColor(np.array(img2.convert("RGB")), cv2.COLOR_RGB2BGR)
@@ -137,18 +177,35 @@ def generate_diff_overlay(img1: Image.Image, img2: Image.Image):
 
     score, contours = _compute_diff_regions(gray1, gray2)
 
-    # Start from the revised image (user cares about the new version)
+    # 1. Combined Overlay (Revised base + RED boxes)
     overlay = cv2_img.copy()
     overlay = _draw_bounding_boxes(overlay, contours,
                                    border_colour=_RED_BORDER,
                                    fill_colour=_RED_FILL)
 
+    # 2. Original Highlight (Original base + RED boxes)
+    orig_highlight = cv1.copy()
+    orig_highlight = _draw_bounding_boxes(orig_highlight, contours,
+                                          border_colour=_RED_BORDER,
+                                          fill_colour=_RED_FILL)
+
+    # 3. Revised Highlight (Revised base + YELLOW boxes)
+    # OpenCV uses BGR. Yellow is (0, 255, 255). We'll use a slightly softer yellow.
+    YELLOW_BORDER = (0, 200, 255)
+    YELLOW_FILL = (180, 240, 255)
+    rev_highlight = cv2_img.copy()
+    rev_highlight = _draw_bounding_boxes(rev_highlight, contours,
+                                         border_colour=YELLOW_BORDER,
+                                         fill_colour=YELLOW_FILL)
+
     similarity = float(max(0.0, min(1.0, score)))
-    result = Image.fromarray(cv2.cvtColor(overlay, cv2.COLOR_BGR2RGB))
+    result_overlay = Image.fromarray(cv2.cvtColor(overlay, cv2.COLOR_BGR2RGB))
+    result_orig_hl = Image.fromarray(cv2.cvtColor(orig_highlight, cv2.COLOR_BGR2RGB))
+    result_rev_hl = Image.fromarray(cv2.cvtColor(rev_highlight, cv2.COLOR_BGR2RGB))
 
     logger.info("Visual diff: similarity=%.4f  regions=%d",
                 similarity, len(contours))
-    return result, similarity, len(contours)
+    return result_overlay, result_orig_hl, result_rev_hl, similarity, len(contours)
 
 
 def compute_similarity(img1: Image.Image, img2: Image.Image) -> float:

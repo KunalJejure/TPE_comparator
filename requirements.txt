@@ -8,6 +8,9 @@ jinja2
 pymupdf
 Pillow
 
+# Word document processing
+python-docx
+
 # Image processing / visual diff
 opencv-python-headless
 numpy

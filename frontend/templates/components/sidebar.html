@@ -7,7 +7,7 @@
         <i data-lucide="chevron-left" style="width:14px; height:14px;"></i>
     </div>
 
-    <img src="{{ url_for('static', path='images/xLM.svg') }}" alt="Logo" style="width:200px; height:60px;">
+    <img src="{{ url_for('static', path='images/xLM.svg') }}" alt="Logo" onclick="switchView('dashboard')" style="width:200px; height:60px; cursor: pointer;">
     <div class="sidebar-logo">
         <!--<div class="logo-icon">
          <i data-lucide="file-diff" style="width:20px; height:20px;"></i> 
@@ -43,6 +43,15 @@
             data-tooltip="Requalifications">
             <i data-lucide="layers" style="width:18px; height:18px;"></i>
             <span class="nav-text">Requalifications</span>
+        </a>
+
+        <!-- Validation Section -->
+        <div class="nav-divider"></div>
+        <div class="nav-section-label">Validation</div>
+        <a class="nav-item" data-view="scopeValidator" onclick="switchView('scopeValidator')"
+            data-tooltip="Scope Validator">
+            <i data-lucide="clipboard-check" style="width:18px; height:18px;"></i>
+            <span class="nav-text">Scope Validator</span>
         </a>
 
         <a class="nav-item" data-tooltip="Settings">

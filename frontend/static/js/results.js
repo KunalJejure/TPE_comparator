@@ -90,6 +90,31 @@ function renderResults(data) {
         ${pageCountNote}
     </div>
 
+    <!-- Filter Bar -->
+    <div class="result-filter-bar">
+        <label class="filter-label">
+            <i data-lucide="filter" style="width:16px;height:16px;"></i>
+            Filter Results:
+        </label>
+        <div class="filter-btn-group">
+            <button class="filter-btn filter-all active" onclick="filterPages('all', this)">
+                <i data-lucide="layers" style="width:16px;height:16px;"></i>
+                <span>All Pages</span>
+                <span class="badge">${total}</span>
+            </button>
+            <button class="filter-btn filter-changed" onclick="filterPages('changed', this)">
+                <i data-lucide="alert-triangle" style="width:16px;height:16px;"></i>
+                <span>Changed</span>
+                <span class="badge">${changed}</span>
+            </button>
+            <button class="filter-btn filter-identical" onclick="filterPages('identical', this)">
+                <i data-lucide="check-circle" style="width:16px;height:16px;"></i>
+                <span>Identical</span>
+                <span class="badge">${passed}</span>
+            </button>
+        </div>
+    </div>
+
     <!-- Centralized Tabs -->
     <div class="central-tabs">
         <div class="central-tab-nav">
@@ -190,8 +215,9 @@ function renderAllTextDiffs(pages, data) {
         else if (status === 'ADDED') badgeClass = 'added';
         else if (status === 'REMOVED') badgeClass = 'removed';
 
+        const hasVisual = p.image_similarity !== undefined && p.image_similarity < 0.999;
         html += `
-        <div class="page-section">
+        <div class="page-section" data-status="${status}" data-has-visual-diff="${hasVisual}">
             <div class="page-section-header">
                 <div class="psh-left">
                     <i data-lucide="chevron-down" style="width:16px;height:16px;" class="chevron"></i>
@@ -200,7 +226,7 @@ function renderAllTextDiffs(pages, data) {
                 </div>
                 <div class="psh-right">
                     <span>Changes: <strong>${changesCount}</strong></span>
-                    <span>Changes: <strong>${((1 - p.image_similarity) * 100).toFixed(1)}%</strong></span>
+                    <span>Visual: <strong>${((1 - p.image_similarity) * 100).toFixed(1)}%</strong></span>
                 </div>
             </div>
             <div class="page-section-body">
@@ -235,8 +261,9 @@ function renderAllVisualDiffs(pages, idPrefix = '') {
         else if (status === 'ADDED') badgeClass = 'added';
         else if (status === 'REMOVED') badgeClass = 'removed';
 
+        const hasVisualChange = p.disposition === 'added' || p.disposition === 'removed' || (p.image_similarity !== undefined && p.image_similarity < 0.999);
         html += `
-        <div class="page-section">
+        <div class="page-section" data-status="${status}" data-has-visual-diff="${hasVisualChange}">
             <div class="page-section-header">
                 <div class="psh-left">
                     <i data-lucide="chevron-down" style="width:16px;height:16px;" class="chevron"></i>
@@ -386,6 +413,20 @@ async function sendChatMessage() {
     lucide.createIcons();
 }
 
+// ---- Intra-line word-level token renderer ----
+function renderIntraTokens(tokens) {
+    if (!tokens || tokens.length === 0) return '';
+    return tokens.map(t => {
+        const text = escapeHtml(t.text || '');
+        if (t.type === 'delete') {
+            return `<span class="intra-del">${text}</span>`;
+        } else if (t.type === 'insert') {
+            return `<span class="intra-ins">${text}</span>`;
+        }
+        return text;
+    }).join(' ');
+}
+
 // ---- Text diff renderer ----
 function renderTextDiff(lineDiff, addCount, delCount, replaceCount, origName, revName) {
     if (!lineDiff || lineDiff.length === 0) {
@@ -451,12 +492,15 @@ function renderTextDiff(lineDiff, addCount, delCount, replaceCount, origName, re
                 <td class="code code-right">${rightText}</td>
             </tr>`;
         } else if (d.type === 'replace') {
+            // Use intra-line word-level tokens if available
+            const leftDisplay = d.intra_left ? renderIntraTokens(d.intra_left) : leftText;
+            const rightDisplay = d.intra_right ? renderIntraTokens(d.intra_right) : rightText;
             html += `<tr class="diff-replace">
                 <td class="gutter gutter-left">${leftNum}</td>
-                <td class="code code-left">${leftText}</td>
+                <td class="code code-left">${leftDisplay}</td>
                 <td class="diff-divider"></td>
                 <td class="gutter gutter-right">${rightNum}</td>
-                <td class="code code-right">${rightText}</td>
+                <td class="code code-right">${rightDisplay}</td>
             </tr>`;
         }
     });
@@ -470,6 +514,10 @@ function renderImageDiff(pageData, idPrefix = '') {
     const origImg = pageData.original_image;
     const revImg = pageData.revised_image;
     const overlayImg = pageData.overlay_image;
+    // Use highlighted images if available, otherwise fallback to standard images
+    const origHlImg = pageData.original_highlight_image || origImg;
+    const revHlImg = pageData.revised_highlight_image || revImg;
+    
     const disposition = pageData.disposition || 'compared';
     const regionCount = pageData.diff_region_count || 0;
     const similarity = ((pageData.image_similarity || 0) * 100).toFixed(1);
@@ -548,12 +596,12 @@ function renderImageDiff(pageData, idPrefix = '') {
         <!-- Side-by-Side (Hidden) -->
         <div id="sbs_view_${idPrefix}${pageData.page}" class="sbs-view">
             <div class="sbs-panel">
-                <h6>Original</h6>
-                <img src="${origImg}" alt="Original Page" loading="lazy" onclick="openImageModal('${origImg}', 'Original Page ${pageData.page}')">
+                <h6>Original (Changes in Red)</h6>
+                <img src="${origHlImg}" alt="Original Page" loading="lazy" onclick="openImageModal('${origHlImg}', 'Original Page ${pageData.page}')">
             </div>
             <div class="sbs-panel">
-                <h6>Revised</h6>
-                <img src="${revImg}" alt="Revised Page" loading="lazy" onclick="openImageModal('${revImg}', 'Revised Page ${pageData.page}')">
+                <h6>Revised (Changes in Yellow)</h6>
+                <img src="${revHlImg}" alt="Revised Page" loading="lazy" onclick="openImageModal('${revHlImg}', 'Revised Page ${pageData.page}')">
             </div>
         </div>
     </div>`;
@@ -579,4 +627,28 @@ function toggleSideBySide(page, idPrefix = '') {
             sbs.classList.remove('active');
         }
     }
+}
+
+// ================================================================
+// PAGE FILTER — show/hide page sections by status
+// ================================================================
+function filterPages(filterType, btnEl) {
+    // Update active button
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    if (btnEl) btnEl.classList.add('active');
+
+    // Filter all .page-section elements across all tab panels
+    document.querySelectorAll('.page-section').forEach(section => {
+        const status = section.getAttribute('data-status') || '';
+        let show = true;
+
+        if (filterType === 'changed') {
+            show = status !== 'PASS';
+        } else if (filterType === 'identical') {
+            show = status === 'PASS';
+        }
+        // 'all' shows everything
+
+        section.style.display = show ? '' : 'none';
+    });
 }

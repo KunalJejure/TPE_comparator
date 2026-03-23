@@ -18,7 +18,8 @@ dropOriginal.addEventListener('drop', (e) => {
     e.preventDefault();
     dropOriginal.classList.remove('dragover');
     const f = Array.from(e.dataTransfer.files).find(f =>
-        f.name.toLowerCase().endsWith('.pdf') || f.type === 'application/pdf');
+        f.name.toLowerCase().endsWith('.pdf') || f.type === 'application/pdf' ||
+        f.name.toLowerCase().endsWith('.docx') || f.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
     if (f) { originalFile = f; renderUploadBoxes(); }
 });
 
@@ -29,7 +30,8 @@ dropRevised.addEventListener('drop', (e) => {
     e.preventDefault();
     dropRevised.classList.remove('dragover');
     const f = Array.from(e.dataTransfer.files).find(f =>
-        f.name.toLowerCase().endsWith('.pdf') || f.type === 'application/pdf');
+        f.name.toLowerCase().endsWith('.pdf') || f.type === 'application/pdf' ||
+        f.name.toLowerCase().endsWith('.docx') || f.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
     if (f) { revisedFile = f; renderUploadBoxes(); }
 });
 
@@ -131,7 +133,7 @@ async function runCompare() {
         progressFill.style.width = progress + '%';
     }, 500);
 
-    addActivity('SY', '#6366F1', 'System', 'Uploading & processing PDFs...');
+    addActivity('SY', '#6366F1', 'System', 'Uploading & processing documents...');
 
     // Update dashboard task statuses
     updateTaskStatus(0, 'In progress', 'red');
@@ -140,6 +142,12 @@ async function runCompare() {
     const formData = new FormData();
     formData.append('original', originalFile);
     formData.append('revised', revisedFile);
+
+    // Append optional page range
+    const startPage = document.getElementById('startPage')?.value;
+    const endPage = document.getElementById('endPage')?.value;
+    if (startPage) formData.append('start_page', startPage);
+    if (endPage) formData.append('end_page', endPage);
 
     try {
         const resp = await fetch('/api/compare', {
@@ -192,7 +200,7 @@ async function runCompare() {
         updateTaskStatus(0, 'Failed', 'red');
     } finally {
         btn.disabled = false;
-        btnText.textContent = 'Compare PDFs';
+        btnText.textContent = 'Compare Documents';
         spinner.style.display = 'none';
         setTimeout(() => { progressBar.style.display = 'none'; }, 1000);
     }

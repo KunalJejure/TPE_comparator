@@ -3,14 +3,23 @@
      Contains: Dynamic page title, subtitle, and app logo
      ============================================================ -->
 <div class="header">
-    <div>
-        <h1 id="pageTitle">Dashboard</h1>
-        <p class="subtitle" id="pageSubtitle">Compare PDFs and track differences. Your AI-powered document
-            QA
-            tool.</p>
+    <div style="display: flex; align-items: flex-start; gap: 16px;">
+        <!-- Mobile Menu Toggle Button (Visible only on mobile/tablet) -->
+        <button class="mobile-menu-btn" onclick="toggleMobileSidebar()" style="background: none; border: none; padding: 4px; cursor: pointer; display: none; margin-top: 4px;">
+            <i data-lucide="menu" style="width:28px; height:28px; color: var(--text-primary);"></i>
+        </button>
+        <div>
+            <h1 id="pageTitle">Dashboard</h1>
+            <p class="subtitle" id="pageSubtitle">Compare PDFs and track differences. Your AI-powered document QA tool.</p>
+        </div>
     </div>
     <div class="header-right">
+        <button id="themeToggle" class="theme-toggle-btn" title="Toggle Light/Dark Mode" onclick="toggleTheme()" style="background: var(--card); border: 1.5px solid var(--border); padding: 8px; border-radius: 10px; cursor: pointer; color: var(--text-primary); transition: all 0.3s ease; display: flex; align-items: center; justify-content: center;">
+            <span id="themeIconSun" style="display: none; height: 20px;"><i data-lucide="sun" style="width: 20px; height: 20px;"></i></span>
+            <span id="themeIconMoon" style="display: block; height: 20px;"><i data-lucide="moon" style="width: 20px; height: 20px;"></i></span>
+        </button>
         <img src="/static/images/AppName.png" alt="App Logo"
-            style="height: 80px; width: auto; object-fit: contain; margin-top: -10px; margin-right: -10px;" />
+            onclick="switchView('dashboard')"
+            style="height: 80px; width: auto; object-fit: contain; margin-top: -10px; margin-right: -10px; cursor: pointer;" />
     </div>
 </div>

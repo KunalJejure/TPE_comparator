@@ -1,0 +1,12 @@
+.git
+.gitignore
+venv
+.venv
+__pycache__
+*.pyc
+.env
+history.db
+uploads/*
+!uploads/.gitkeep
+backend/reports/*
+!backend/reports/.gitkeep

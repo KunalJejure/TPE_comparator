@@ -2,6 +2,36 @@
 
 Enterprise-grade PDF comparison with text diffing, visual overlays, and AI-powered insights.
 
+## Quickstart: How to Launch the Project
+
+To quickly start the server and launch the dashboard locally:
+
+**1. Create a virtual environment and structure:**
+```bash
+python -m venv venv
+```
+_Activate the environment:_
+* **Windows (CMD):** `venv\Scripts\activate.bat`
+* **Windows (PowerShell):** `venv\Scripts\Activate.ps1`
+* **Mac/Linux:** `source venv/bin/activate`
+
+**2. Install dependencies:**
+```bash
+pip install -r requirements.txt
+```
+
+**3. Run the application server:**
+```bash
+python main.py
+```
+
+**4. Open your browser and navigate to:**
+```
+http://localhost:8000
+```
+*(The server will run on port 8000 unless specified otherwise)*
+
+
 ## Features
 
 - **Side-by-Side Text Diff** — GitHub-style line-by-line comparison across all pages
@@ -9,6 +39,7 @@ Enterprise-grade PDF comparison with text diffing, visual overlays, and AI-power
 - **AI Chat Assistant** — Ask questions about the comparison results via Groq LLM
 - **Modern Dashboard** — Clean, responsive single-page UI with stats and charts
 - **PDF Report Generation** — Downloadable comparison report
+
 
 ## Tech Stack
 

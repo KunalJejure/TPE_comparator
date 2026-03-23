@@ -12,6 +12,7 @@ from backend.api.chat import router as chat_router
 from backend.api.reports import router as reports_router
 from backend.api.requalifications import router as requal_router
 from backend.api.auth import router as auth_router
+from backend.api.scope_validator import router as scope_validator_router
 from backend.config import SECRET_KEY
 from backend.database import init_db
 
@@ -54,6 +55,7 @@ app.include_router(compare_router, prefix="/api")
 app.include_router(chat_router, prefix="/api")
 app.include_router(reports_router, prefix="/api/reports")
 app.include_router(requal_router, prefix="/api/requalifications")
+app.include_router(scope_validator_router, prefix="/api/scope-validator")
 app.include_router(auth_router)
 
 

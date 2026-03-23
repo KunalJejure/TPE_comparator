@@ -1,0 +1,220 @@
+/* ================================================================
+   RESPONSIVE STYLES (TABLET & MOBILE)
+   ================================================================ */
+
+/* =========================================
+   TABLET VIEW (Max-width: 1024px)
+   ========================================= */
+@media screen and (max-width: 1024px) {
+    /* Collapse sidebar entirely on tablet by default to save width */
+    .sidebar {
+        width: 80px;
+        padding: 28px 10px 20px;
+    }
+    
+    /* Hide texts in sidebar */
+    .sidebar.collapsed .nav-text,
+    .sidebar.collapsed .badge,
+    .sidebar.collapsed .sidebar-upgrade,
+    .sidebar.collapsed .sidebar-footer-text,
+    .sidebar.collapsed .sidebar-logo span,
+    .sidebar .nav-text,
+    .sidebar .badge,
+    .sidebar .sidebar-upgrade,
+    .sidebar .sidebar-footer-text,
+    .sidebar .sidebar-logo span,
+    .sidebar .nav-section-label,
+    .sso-user-details {
+        display: none !important;
+    }
+    
+    /* Adjust sidebar nav item justification */
+    .sidebar .nav-item {
+        justify-content: center;
+        padding: 11px 0;
+    }
+
+    .sidebar > img {
+        width: 40px !important;
+        margin: 0 auto 20px;
+        display: block;
+    }
+
+    /* Adjust main content margins */
+    .main {
+        margin-left: 80px;
+        max-width: calc(100% - 80px);
+        padding: 24px;
+    }
+
+    /* Dashboard grids */
+    .stats-row {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .result-stats {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    /* Modals / Login card */
+    .login-card, .welcome-card-box {
+        padding: 32px 24px;
+    }
+}
+
+/* =========================================
+   MOBILE VIEW (Max-width: 768px)
+   ========================================= */
+@media screen and (max-width: 768px) {
+    /* Main body adjust */
+    html {
+        font-size: 14px; /* Slight scale down for mobile */
+    }
+
+    /* Expand sidebar on mobile overlay */
+    .sidebar {
+        transform: translateX(-100%);
+        width: 260px; /* Full width for drawer */
+        padding: 24px 20px;
+        z-index: 9999;
+        background: var(--card);
+        box-shadow: var(--shadow-lg);
+    }
+    
+    /* Class applied by JS for mobile menu toggle if available */
+    .sidebar.mobile-open {
+        transform: translateX(0);
+    }
+    
+    /* Remove collapse properties inside mobile sidebar so drawer looks normal */
+    .sidebar .nav-text,
+    .sidebar .badge,
+    .sidebar .sidebar-upgrade,
+    .sidebar .sidebar-footer-text,
+    .sidebar .sidebar-logo span,
+    .sidebar .nav-section-label,
+    .sso-user-details {
+        display: flex !important;
+    }
+    .sidebar .nav-section-label { display: block !important; }
+    
+    .sidebar .nav-item {
+        justify-content: flex-start;
+        padding: 11px 14px;
+    }
+
+    .main {
+        margin-left: 0 !important;
+        max-width: 100% !important;
+        padding: 16px;
+    }
+
+    /* Header */
+    .header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+    }
+    
+    .header-right {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    /* Grids */
+    .stats-row {
+        grid-template-columns: 1fr; /* Stack vertically on mobile */
+    }
+
+    .upload-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .result-stats {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .chart-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .compare-actions {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .compare-actions > button {
+        width: 100%;
+    }
+
+    /* Tasks list */
+    .task-item {
+        flex-wrap: wrap;
+    }
+    
+    .task-status, .task-time {
+        width: 50%;
+        font-size: 0.8rem;
+    }
+    
+    /* Result tabs */
+    .central-tab-nav {
+        flex-direction: column;
+    }
+    
+    .central-tab-btn {
+        width: 100%;
+        justify-content: space-between;
+        margin-bottom: 0;
+        border-bottom: 1px solid var(--border);
+    }
+    
+    /* Result headers */
+    .page-section-header {
+        padding: 12px 16px;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+    
+    /* Visual compare (Diff grids) */
+    .diff-table {
+        font-size: 0.75rem; /* Smaller monospace size on mobile */
+    }
+    
+    .diff-table td {
+        padding: 4px;
+    }
+
+    /* Better Tap Targets */
+    .nav-item, .task-menu, .r-stat, .upload-box {
+        min-height: 44px; /* Touch target size optimization */
+    }
+
+    .btn-primary, .btn-sso-microsoft, .btn-login, .btn-compare, .btn-reset {
+        padding: 14px 20px; /* Thicker buttons */
+        min-height: 48px;
+    }
+}
+
+/* =========================================
+   SMALL MOBILE VIEW (Max-width: 480px)
+   ========================================= */
+@media screen and (max-width: 480px) {
+    .result-stats {
+        grid-template-columns: 1fr; /* Single column stats */
+    }
+    
+    .diff-table colgroup col.gutter {
+        width: 36px;
+    }
+    
+    .diff-table .gutter {
+        min-width: 36px;
+        width: 36px;
+        padding: 0 4px;
+        font-size: 0.65rem;
+    }
+}

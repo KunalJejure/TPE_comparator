@@ -23,6 +23,9 @@
 
     <!-- Main Stylesheet (extracted from inline styles) -->
     <link rel="stylesheet" href="{{ url_for('static', path='css/main.css') }}" />
+    
+    <!-- Responsive Stylesheet for Tablet and Mobile -->
+    <link rel="stylesheet" href="{{ url_for('static', path='css/responsive.css') }}" />
 </head>
 
 <body>
@@ -64,6 +67,9 @@
             <!-- Requalifications View -->
             {% include 'components/requalifications.html' %}
 
+            <!-- Scope Validator View -->
+            {% include 'components/scope_validator.html' %}
+
         </div>
 
         <!-- Modals (Image preview + Welcome popup) -->
@@ -93,6 +99,7 @@
     <script src="{{ url_for('static', path='js/compare.js') }}"></script>
     <script src="{{ url_for('static', path='js/reports.js') }}"></script>
     <script src="{{ url_for('static', path='js/requalifications.js') }}"></script>
+    <script src="{{ url_for('static', path='js/scope_validator.js') }}"></script>
 
 </body>
 

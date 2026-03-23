@@ -1,0 +1,260 @@
+<!-- ============================================================
+     SCOPE VALIDATOR VIEW COMPONENT
+     States: Input Form | Results (highlighted document) | History
+     ============================================================ -->
+<div class="view" id="view-scopeValidator">
+    <div class="sv-container">
+
+        <!-- ============================================================
+             STATE 1: INPUT FORM
+             ============================================================ -->
+        <div id="svInputSection">
+
+            <!-- Page header -->
+            <div class="sv-page-header">
+                <div>
+                    <h3 class="sv-page-title">Scope & Deliverables Validator</h3>
+                    <p class="sv-page-subtitle">
+                        Verify that your scope and deliverables are covered in the validation plan document.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Info Banner -->
+            <div class="sv-info-banner">
+                <div class="sv-info-icon">
+                    <i data-lucide="clipboard-check" style="width:22px; height:22px;"></i>
+                </div>
+                <div class="sv-info-content">
+                    <h4>How It Works</h4>
+                    <p>Enter your scope items manually or upload a support document (Word, PDF, Text, or Image)
+                        to extract them automatically. Then upload your Validation Plan (.docx) to check coverage.
+                        The document will be rendered with its original formatting, and matching sections will be
+                        highlighted.</p>
+                </div>
+            </div>
+
+            <!-- Two-column layout -->
+            <div class="sv-input-grid">
+
+                <!-- Left: Scope Items -->
+                <div class="sv-input-card">
+                    <div class="sv-card-header">
+                        <i data-lucide="list-checks" style="width:20px; height:20px;"></i>
+                        <h4>Scope & Deliverables</h4>
+                        <span class="sv-optional-badge">either or both</span>
+                    </div>
+                    <p class="sv-card-hint">Type scope items below <strong>or</strong> upload a support document — you
+                        can use either, or both together.</p>
+
+                    <!-- Scope file upload -->
+                    <div class="sv-scope-upload-row">
+                        <button class="sv-scope-upload-btn"
+                            onclick="document.getElementById('svScopeFileInput').click()">
+                            <i data-lucide="paperclip" style="width:16px; height:16px;"></i>
+                            <span>Upload Support Document</span>
+                        </button>
+                        <input type="file" id="svScopeFileInput"
+                            accept=".docx,.pdf,.txt,.png,.jpg,.jpeg,.bmp,.tiff,.tif" style="display:none;" />
+                        <span class="sv-scope-upload-hint">Word, PDF, Text, or Images</span>
+                    </div>
+
+                    <!-- Scope file info (shown when a scope file is uploaded) -->
+                    <div class="sv-scope-file-info" id="svScopeFileInfo" style="display:none;">
+                        <div class="sv-scope-file-badge">
+                            <i data-lucide="file-check" style="width:16px; height:16px;"></i>
+                            <span id="svScopeFileName"></span>
+                        </div>
+                        <span class="sv-scope-file-note">Will be combined with text items below</span>
+                        <button class="sv-file-remove" onclick="svRemoveScopeFile()" title="Remove">
+                            <i data-lucide="x" style="width:14px; height:14px;"></i>
+                        </button>
+                    </div>
+
+                    <textarea id="svScopeInput" class="sv-textarea"
+                        placeholder="e.g.&#10;Functional testing of login module&#10;API performance benchmarks&#10;Security vulnerability assessment&#10;User acceptance testing for checkout flow&#10;&#10;(Optional if support document is uploaded)"
+                        rows="12"></textarea>
+                    <div class="sv-item-count">
+                        <i data-lucide="hash" style="width:14px; height:14px;"></i>
+                        <span id="svItemCount">0 items</span>
+                    </div>
+                </div>
+
+                <!-- Right: Document Upload -->
+                <div class="sv-input-card">
+                    <div class="sv-card-header">
+                        <i data-lucide="file-up" style="width:20px; height:20px;"></i>
+                        <h4>Validation Plan Document</h4>
+                    </div>
+                    <p class="sv-card-hint">Upload a Word document (.docx) or PDF (.pdf) containing your validation
+                        plan.</p>
+
+                    <div class="sv-upload-box" id="svUploadBox"
+                        onclick="document.getElementById('svFileInput').click()">
+                        <input type="file" id="svFileInput" accept=".docx,.pdf" style="display:none;" />
+                        <div class="sv-upload-icon">
+                            <i data-lucide="upload-cloud" style="width:36px; height:36px;"></i>
+                        </div>
+                        <h4>Drop your .docx or .pdf file here</h4>
+                        <p>or <span class="browse-link">browse files</span></p>
+                        <span class="sv-upload-format-badge">
+                            <i data-lucide="file-type" style="width:14px; height:14px;"></i>
+                            Word (.docx) or PDF Document
+                        </span>
+                    </div>
+
+                    <!-- File info (shown after upload) -->
+                    <div class="sv-file-info" id="svFileInfo" style="display:none;">
+                        <div class="sv-file-icon">
+                            <i data-lucide="file-text" style="width:20px; height:20px;"></i>
+                        </div>
+                        <div class="sv-file-details">
+                            <span class="sv-file-name" id="svFileName"></span>
+                            <span class="sv-file-size" id="svFileSize"></span>
+                        </div>
+                        <button class="sv-file-remove" onclick="svRemoveFile()" title="Remove file">
+                            <i data-lucide="x" style="width:16px; height:16px;"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Bar -->
+            <div class="sv-actions-bar">
+                <div class="sv-actions-info">
+                    <i data-lucide="info" style="width:16px; height:16px;"></i>
+                    <span>Items from text field and support document are merged and deduplicated · Word formatting is
+                        preserved</span>
+                </div>
+                <button class="btn-compare sv-validate-btn" id="svValidateBtn" disabled onclick="svRunValidation()">
+                    <i data-lucide="scan-search" style="width:18px; height:18px;"></i>
+                    <span id="svValidateBtnText">Validate Coverage</span>
+                    <div class="spinner" id="svSpinner"></div>
+                </button>
+            </div>
+
+            <!-- ── Recent Validations (History) ── -->
+            <div class="sv-history-section" id="svHistorySection">
+                <div class="sv-history-header">
+                    <div class="sv-history-title">
+                        <i data-lucide="history" style="width:18px; height:18px;"></i>
+                        <h4>Recent Validations</h4>
+                    </div>
+                    <span class="sv-history-count" id="svHistoryCount">0 records</span>
+                </div>
+                <div class="sv-history-list" id="svHistoryList">
+                    <div class="sv-history-empty" id="svHistoryEmpty">
+                        <i data-lucide="inbox" style="width:28px; height:28px;"></i>
+                        <p>No validation history yet</p>
+                    </div>
+                    <!-- Filled dynamically -->
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================================
+             STATE 2: RESULTS VIEW
+             ============================================================ -->
+        <div id="svResultsSection" style="display:none;">
+
+            <!-- Results Header -->
+            <div class="sv-results-header">
+                <button class="requal-back-btn" onclick="svBackToInput()">
+                    <i data-lucide="arrow-left" style="width:18px; height:18px;"></i>
+                    Back
+                </button>
+                <div class="sv-results-title-row">
+                    <h3>Validation Results</h3>
+                    <span class="sv-doc-name-badge" id="svResultDocName"></span>
+                    <span class="sv-source-summary-badge" id="svSourceSummary" style="display:none;"></span>
+                </div>
+                <button class="sv-history-delete-btn" id="svResultDeleteBtn"
+                    style="display:none; margin-left:auto; background:var(--danger-light); padding: 8px 12px; border-radius: 6px; border: none; cursor:pointer;"
+                    title="Delete this record">
+                    <i data-lucide="trash-2" style="width:16px; height:16px; color:var(--danger);"></i>
+                    <span
+                        style="color:var(--danger); font-size: 0.82rem; font-weight: 600; margin-left: 6px;">Delete</span>
+                </button>
+            </div>
+
+            <!-- Coverage Summary Cards -->
+            <div class="sv-summary-row">
+                <div class="sv-summary-card sv-summary-coverage">
+                    <div class="sv-summary-icon">
+                        <i data-lucide="pie-chart" style="width:24px; height:24px;"></i>
+                    </div>
+                    <div class="sv-summary-info">
+                        <span class="sv-summary-label">Coverage</span>
+                        <span class="sv-summary-value" id="svCoveragePct">0%</span>
+                    </div>
+                    <div class="sv-coverage-ring" id="svCoverageRing">
+                        <svg viewBox="0 0 36 36">
+                            <path class="sv-ring-bg"
+                                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                            <path class="sv-ring-fill" id="svRingFill" stroke-dasharray="0, 100"
+                                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                        </svg>
+                    </div>
+                </div>
+                <div class="sv-summary-card sv-summary-matched">
+                    <div class="sv-summary-icon green">
+                        <i data-lucide="check-circle-2" style="width:24px; height:24px;"></i>
+                    </div>
+                    <div class="sv-summary-info">
+                        <span class="sv-summary-label">Matched</span>
+                        <span class="sv-summary-value" id="svMatchedCount">0</span>
+                    </div>
+                </div>
+                <div class="sv-summary-card sv-summary-unmatched">
+                    <div class="sv-summary-icon red">
+                        <i data-lucide="alert-circle" style="width:24px; height:24px;"></i>
+                    </div>
+                    <div class="sv-summary-info">
+                        <span class="sv-summary-label">Not Found</span>
+                        <span class="sv-summary-value" id="svUnmatchedCount">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Two-column results layout -->
+            <div class="sv-results-grid">
+
+                <!-- Left: Scope items checklist -->
+                <div class="sv-checklist-panel">
+                    <div class="sv-panel-header">
+                        <i data-lucide="list-checks" style="width:18px; height:18px;"></i>
+                        <h4>Scope Items</h4>
+                    </div>
+                    <div class="sv-checklist" id="svChecklist">
+                        <!-- Filled dynamically -->
+                    </div>
+                </div>
+
+                <!-- Right: Highlighted document -->
+                <div class="sv-document-panel">
+                    <div class="sv-panel-header">
+                        <i data-lucide="file-text" style="width:18px; height:18px;"></i>
+                        <h4>Document Content</h4>
+                        <div class="sv-legend">
+                            <span class="sv-legend-item"><span class="sv-legend-dot matched"></span> Matched</span>
+                        </div>
+                    </div>
+                    <div class="sv-document-content" id="svDocumentContent">
+                        <!-- Filled dynamically with highlighted HTML -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hover Popup (positioned absolutely) -->
+        <div class="sv-popup" id="svPopup" style="display:none;">
+            <div class="sv-popup-header">
+                <i data-lucide="target" style="width:16px; height:16px;"></i>
+                <span>Matched Scope Item</span>
+            </div>
+            <div class="sv-popup-body" id="svPopupBody"></div>
+            <div class="sv-popup-confidence" id="svPopupConfidence"></div>
+        </div>
+
+    </div>
+</div>
