@@ -20,6 +20,7 @@ from backend.config import (
     AZURE_TENANT_ID,
     AZURE_METADATA_URL,
     SECRET_KEY,
+    BASE_URL,
 )
 
 logger = logging.getLogger(__name__)
@@ -123,9 +124,14 @@ async def login(request: Request):
             detail="SSO is not configured. Please set Azure AD credentials in .env file."
         )
 
-    # Build the callback URL dynamically
-    redirect_uri = request.url_for("auth_callback")
-    return await oauth.azure.authorize_redirect(request, str(redirect_uri))
+    if BASE_URL:
+        redirect_uri = f"{BASE_URL.rstrip('/')}/auth/callback"
+    else:
+        redirect_uri = str(request.url_for("auth_callback"))
+        redirect_uri = redirect_uri.replace("://0.0.0.0:", "://localhost:")
+
+    logger.info("OAuth redirect URI: %s", redirect_uri)
+    return await oauth.azure.authorize_redirect(request, redirect_uri)
 
 
 @router.get("/auth/callback")
@@ -179,8 +185,11 @@ async def logout(request: Request):
     logger.info("🔒 User logged out: %s", email)
 
     if _SSO_ENABLED and AZURE_TENANT_ID:
-        # Redirect to Microsoft's logout endpoint
-        post_logout_url = str(request.url_for("home"))
+        if BASE_URL:
+            post_logout_url = BASE_URL.rstrip("/") + "/"
+        else:
+            post_logout_url = str(request.url_for("home"))
+            post_logout_url = post_logout_url.replace("://0.0.0.0:", "://localhost:")
         ms_logout_url = (
             f"https://login.microsoftonline.com/{AZURE_TENANT_ID}/oauth2/v2.0/logout"
             f"?post_logout_redirect_uri={post_logout_url}"

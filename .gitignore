@@ -28,6 +28,9 @@ frontend/static/reports/
 *.log
 *.swp
 history.db
+history.db-shm
+history.db-wal
+frontend/package-lock.json
 
 # Agent
 .agent/

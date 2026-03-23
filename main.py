@@ -8,11 +8,12 @@ from backend.app import app  # noqa: F401
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))
+    is_dev = not (os.environ.get("RAILWAY_ENVIRONMENT") or os.environ.get("RAILWAY_PROJECT_ID"))
     uvicorn.run(
         "backend.app:app",
         host="0.0.0.0",
         port=port,
-        reload=True,
+        reload=is_dev,
         proxy_headers=True,
         forwarded_allow_ips="*",
     )

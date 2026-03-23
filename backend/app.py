@@ -13,7 +13,7 @@ from backend.api.reports import router as reports_router
 from backend.api.requalifications import router as requal_router
 from backend.api.auth import router as auth_router
 from backend.api.scope_validator import router as scope_validator_router
-from backend.config import SECRET_KEY
+from backend.config import SECRET_KEY, IS_PRODUCTION
 from backend.database import init_db
 
 # Initialize database
@@ -38,7 +38,7 @@ app.add_middleware(
     session_cookie="qalens_session",
     max_age=86400,          # 24-hour session
     same_site="lax",
-    https_only=False,       # Set True in production with HTTPS
+    https_only=IS_PRODUCTION,
 )
 
 # Static files (CSS, JS, images)
@@ -66,10 +66,12 @@ def health_check():
 
 @app.get("/")
 def home(request: Request):
-    # Pass session user info to template for SSO-aware rendering
     user = request.session.get("user")
-    return templates.TemplateResponse("index.html", {
-        "request": request,
-        "user": user,
-        "sso_authenticated": user is not None,
-    })
+    return templates.TemplateResponse(
+        request,
+        "index.html",
+        context={
+            "user": user,
+            "sso_authenticated": user is not None,
+        },
+    )

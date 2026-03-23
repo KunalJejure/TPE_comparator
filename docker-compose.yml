@@ -5,11 +5,11 @@ services:
     build: .
     container_name: fsb_tpe_comparator
     ports:
-      - "8080:8080"
+      - "${PORT:-8080}:${PORT:-8080}"
     volumes:
       - ./history.db:/app/history.db
       - ./uploads:/app/uploads
-      - ./backend/reports:/app/backend/reports
-    environment:
-      - GROQ_API_KEY=${GROQ_API_KEY}
+      - ./frontend/static/reports:/app/frontend/static/reports
+    env_file:
+      - .env
     restart: unless-stopped

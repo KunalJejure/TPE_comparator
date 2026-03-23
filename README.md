@@ -27,9 +27,9 @@ python main.py
 
 **4. Open your browser and navigate to:**
 ```
-http://localhost:8000
+http://localhost:8080
 ```
-*(The server will run on port 8000 unless specified otherwise)*
+*(The server will run on port 8080 by default - see main.py)*
 
 
 ## Features
@@ -117,7 +117,7 @@ echo "GROQ_API_KEY=your_groq_api_key_here" > .env
 python main.py
 ```
 
-Open **http://localhost:8000** in your browser.
+Open **http://localhost:8080** in your browser.
 
 ---
 
@@ -150,7 +150,7 @@ echo GROQ_API_KEY=your_groq_api_key_here > .env
 python main.py
 ```
 
-Open **http://localhost:8000** in your browser.
+Open **http://localhost:8080** in your browser.
 
 #### Windows Troubleshooting
 
@@ -161,7 +161,7 @@ Open **http://localhost:8000** in your browser.
 | `pip install` fails on `opencv-python` | Try: `pip install opencv-python-headless` instead. Edit `requirements.txt` to replace `opencv-python` with `opencv-python-headless`. |
 | `pip install` fails on `scikit-image` | Make sure you have the latest pip: `python -m pip install --upgrade pip setuptools wheel`, then retry. |
 | `ModuleNotFoundError: No module named 'backend'` | Make sure you are running `python main.py` from the **project root directory** (the folder containing `main.py` and the `backend/` folder). |
-| Port 8000 already in use | Either close the other process, or change the port: `python -c "import uvicorn; uvicorn.run('backend.app:app', host='0.0.0.0', port=8080, reload=True)"` |
+| Port in use | Either close the other process, or change the port: `PORT=8080 python main.py` |
 | `ImportError: DLL load failed` (numpy/cv2) | Install the Visual C++ Redistributable from [Microsoft](https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist). |
 | `.env` file not loading | Make sure the `.env` file is in the project root (same folder as `main.py`), not inside `backend/`. |
 

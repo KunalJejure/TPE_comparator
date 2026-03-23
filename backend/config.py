@@ -25,9 +25,15 @@ AZURE_CLIENT_SECRET = os.getenv("AZURE_CLIENT_SECRET")
 AZURE_TENANT_ID = os.getenv("AZURE_TENANT_ID")
 SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret-key")
 
-# Construct the metadata URL or authorize/token URLs if tenant is common/organizations
-# Usually: https://login.microsoftonline.com/{tenant_id}/v2.0/.well-known/openid-configuration
 AZURE_METADATA_URL = f"https://login.microsoftonline.com/{AZURE_TENANT_ID}/v2.0/.well-known/openid-configuration"
+
+# ---- App URL ----
+# Set BASE_URL in production (e.g. https://your-app.up.railway.app)
+# Locally it auto-detects but replaces 0.0.0.0 with localhost
+BASE_URL = os.getenv("BASE_URL", "")
+
+# Detect production: Railway always sets RAILWAY_ENVIRONMENT
+IS_PRODUCTION = bool(os.getenv("RAILWAY_ENVIRONMENT") or os.getenv("RAILWAY_PROJECT_ID"))
 
 
 # ---- Paths ----
