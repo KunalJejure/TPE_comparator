@@ -1,8 +1,12 @@
-// ================================================================
-// reports.js — Reports View Logic (Stats, Charts, History Table)
-// ================================================================
+let currentReportsCount = 0;
 
 function exportCSV() {
+    // Check if there are any records loaded
+    if (currentReportsCount === 0) {
+        showToast("No records Found", "warning");
+        return;
+    }
+
     const filterEl = document.getElementById('histFilterStatus');
     const status = filterEl ? filterEl.value : '';
     let url = '/api/reports/export?';
@@ -46,41 +50,51 @@ async function loadReportsHistory() {
     if (status) url += `status=${encodeURIComponent(status)}`;
 
     try {
+        currentReportsCount = 0; // Reset before fetch
         const res = await fetch(url);
         const data = await res.json();
+        
+        currentReportsCount = data.length || 0;
 
         const tbody = document.getElementById('reportsTableBody');
         if (!tbody) return;
         tbody.innerHTML = '';
 
-        if (data.length === 0) {
+        if (currentReportsCount === 0) {
             tbody.innerHTML = '<tr><td colspan="6" style="padding: 24px; text-align: center; color: var(--text-muted);">No records found</td></tr>';
             return;
         }
 
         data.forEach(item => {
             const tr = document.createElement('tr');
-            tr.style.borderBottom = '1px solid var(--border)';
-
-            let statusColor = 'var(--text-secondary)';
-            if (item.status === 'PASS' || item.status === 'NO CHANGES') statusColor = 'var(--success)';
-            else if (item.status === 'FAIL') statusColor = 'var(--danger)';
-            else if (item.status === 'CHANGES FOUND') statusColor = 'var(--warning)';
+            
+            const statusClass = item.status.toLowerCase().replace(/\s+/g, '-');
+            const statusBadge = `<span class="status-badge status-${statusClass}">${item.status}</span>`;
 
             tr.innerHTML = `
-                <td style="padding: 12px;">${item.timestamp}</td>
-                <td style="padding: 12px;">${item.original_filename}</td>
-                <td style="padding: 12px;">${item.revised_filename}</td>
-                <td style="padding: 12px;">${item.total_pages}</td>
-                <td style="padding: 12px; color: ${statusColor}; font-weight: 600;">${item.status}</td>
-                <td style="padding: 12px; display: flex; align-items: center; gap: 8px;">
-                    ${item.report_url ? `<a href="${item.report_url}" target="_blank"
-                        style="color: var(--accent); font-weight: 500; font-size: 0.9rem; text-decoration: none;">PDF Report</a>` : ''}
-                    <button onclick="viewHistoryResult(${item.id})" style="padding: 6px 12px; font-size: 0.8rem; background: var(--accent); color: white; border: none; border-radius: 4px; cursor: pointer; transition: background 0.2s;">View Results</button>
+                <td>${item.timestamp}</td>
+                <td title="${item.original_filename}">${item.original_filename}</td>
+                <td title="${item.revised_filename}">${item.revised_filename}</td>
+                <td>${item.total_pages}</td>
+                <td>${statusBadge}</td>
+                <td>
+                    <div class="table-actions">
+                        ${item.report_url ? `<a href="${item.report_url}" target="_blank" class="btn-table-action" title="Download PDF Report">
+                            <i data-lucide="file-down"></i>
+                        </a>` : ''}
+                        <button onclick="viewHistoryResult(${item.id})" class="btn-table-action primary" title="View Results">
+                            <i data-lucide="eye"></i>
+                        </button>
+                    </div>
                 </td>
             `;
             tbody.appendChild(tr);
         });
+
+        // Re-initialize Lucide icons for the newly added buttons
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
 
     } catch (err) {
         console.error("Failed to load history table", err);

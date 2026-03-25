@@ -7,67 +7,40 @@
         <i data-lucide="chevron-left" style="width:14px; height:14px;"></i>
     </div>
 
-    <img src="{{ url_for('static', path='images/xLM.svg') }}" alt="Logo" onclick="switchView('dashboard')" style="width:200px; height:60px; cursor: pointer;">
     <div class="sidebar-logo">
-        <!--<div class="logo-icon">
-         <i data-lucide="file-diff" style="width:20px; height:20px;"></i> 
-           
-        </div> 
-        <span>AuditLens</span>-->
+        <img src="{{ url_for('static', path='images/xLM.svg') }}" alt="Logo Icon" class="logo-image">
     </div>
 
     <nav class="sidebar-nav">
-        <a class="nav-item active" data-view="dashboard" onclick="switchView('dashboard')" data-tooltip="Dashboard">
-            <i data-lucide="layout-dashboard" style="width:18px; height:18px;"></i>
-            <span class="nav-text">Dashboard</span>
+        <div class="nav-section-label">WORK</div>
+        <a class="nav-item active" data-view="dashboard" onclick="switchView('dashboard')" data-tooltip="Home">
+            <i data-lucide="home" style="width:18px; height:18px;"></i>
+            <span class="nav-text">Home</span>
         </a>
         <a class="nav-item" data-view="compare" onclick="switchView('compare')" data-tooltip="Compare">
             <i data-lucide="git-compare" style="width:18px; height:18px;"></i>
             <span class="nav-text">Compare</span>
             <span class="badge">+</span>
         </a>
-        <a class="nav-item" data-view="results" onclick="switchView('results')" id="navResults" style="display:none;"
-            data-tooltip="Results">
-            <i data-lucide="split" style="width:18px; height:18px;"></i>
-            <span class="nav-text">Results</span>
-        </a>
         <a class="nav-item" data-view="reports" onclick="switchView('reports')" data-tooltip="Reports">
             <i data-lucide="file-bar-chart" style="width:18px; height:18px;"></i>
             <span class="nav-text">Reports</span>
         </a>
 
-        <!-- Requalifications Section -->
         <div class="nav-divider"></div>
-        <div class="nav-section-label">Batch Operations</div>
-        <a class="nav-item" data-view="requalifications" onclick="switchView('requalifications')"
-            data-tooltip="Requalifications">
-            <i data-lucide="layers" style="width:18px; height:18px;"></i>
-            <span class="nav-text">Requalifications</span>
-        </a>
-
-        <!-- Validation Section -->
-        <div class="nav-divider"></div>
-        <div class="nav-section-label">Validation</div>
-        <a class="nav-item" data-view="scopeValidator" onclick="switchView('scopeValidator')"
-            data-tooltip="Scope Validator">
-            <i data-lucide="clipboard-check" style="width:18px; height:18px;"></i>
-            <span class="nav-text">Scope Validator</span>
-        </a>
-
-        <a class="nav-item" data-tooltip="Settings">
+        <div class="nav-section-label">ACCOUNT</div>
+        <a class="nav-item" data-view="settings" onclick="switchView('settings')" data-tooltip="Settings">
             <i data-lucide="settings" style="width:18px; height:18px;"></i>
             <span class="nav-text">Settings</span>
         </a>
     </nav>
 
     <div class="sidebar-footer">
-        <a class="nav-item" data-tooltip="Help & Information">
-            <i data-lucide="help-circle" style="width:18px; height:18px;"></i>
-            <span class="nav-text">Help &amp; information</span>
-        </a>
-        <a class="nav-item" data-tooltip="Log out" onclick="handleLogout()">
+        <div class="nav-divider" style="margin: 0 0 16px 0;"></div>
+
+        <a class="nav-item" data-tooltip="Sign out" onclick="handleLogout()" style="margin-top: 4px;">
             <i data-lucide="log-out" style="width:18px; height:18px;"></i>
-            <span class="nav-text">Log out</span>
+            <span class="nav-text">Sign out</span>
         </a>
     </div>
 </aside>

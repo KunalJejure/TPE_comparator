@@ -15,6 +15,7 @@ import io
 import logging
 import os
 import base64
+import re
 from pathlib import Path
 from typing import Any, Dict, List
 
@@ -165,6 +166,62 @@ def extract_structured_text(pdf_path: str) -> List[Dict[str, Any]]:
             doc.close()
 
     return pages
+
+
+def is_date_time_string(text: str) -> bool:
+    """Check if a string looks like a date or time.
+
+    Matches patterns like:
+      - 03/16/2026
+      - 2026-03-25
+      - 07:31:55
+      - 07:31:55:087
+      - 25-Mar-2026
+    """
+    if not text:
+        return False
+    
+    # Common date/time patterns
+    patterns = [
+        # Combined: MM/DD/YYYY HH:MM:SS (with optional milliseconds)
+        r"\d{1,2}/\d{1,2}/\d{2,4}\s+\d{1,2}:\d{2}:\d{2}([:.]\d+)?",
+        # MM/DD/YYYY or DD/MM/YYYY
+        r"\b\d{1,2}/\d{1,2}/\d{2,4}\b",
+        # YYYY-MM-DD or DD-MM-YYYY
+        r"\b\d{2,4}-\d{1,2}-\d{1,2}\b",
+        # HH:MM:SS (with optional milliseconds or extra digits)
+        r"\b\d{1,2}:\d{2}:\d{2}([:.]\d+)?\b",
+        # DD-Mon-YYYY (e.g., 25-Mar-2026)
+        r"\b\d{1,2}-[A-Za-z]{3}-\d{2,4}\b",
+    ]
+    
+    combined = "|".join(f"({p})" for p in patterns)
+    match = re.search(combined, text)
+    if match:
+        logger.debug("Date/time match found in text: '%s' (pattern: %s)", text, match.group())
+    return bool(match)
+
+
+def get_date_time_bboxes(structured_page: Dict[str, Any], scale: float = 1.0) -> List[List[float]]:
+    """Extract bboxes of lines that contain date/time strings.
+    
+    Args:
+        structured_page: Page dict from extract_structured_text.
+        scale: Scaling factor (e.g., RENDER_DPI / 72).
+    """
+    bboxes = []
+    for line in structured_page.get("lines", []):
+        text = line.get("text", "")
+        if is_date_time_string(text):
+            bbox = line.get("bbox", [])
+            if bbox:
+                # Scale from points to pixels
+                scaled_bbox = [c * scale for c in bbox]
+                bboxes.append(scaled_bbox)
+                logger.debug("Found date/time bbox: %s for text: '%s'", scaled_bbox, text)
+    if bboxes:
+        logger.info("Total date/time bboxes extracted: %d", len(bboxes))
+    return bboxes
 
 
 def _extract_page_tables(page) -> List[Dict[str, Any]]:

@@ -4,6 +4,14 @@
      ============================================================ -->
 <div class="view" id="view-reports">
 
+    <!-- Header Section (Matching Home Page) -->
+    <div class="welcome-section" style="max-width: none; margin-left: 0; margin-right: 0;">
+        <div class="welcome-text">
+            <h2>Reports & Analytics</h2>
+            <p>Detailed insights into your comparison history and system performance.</p>
+        </div>
+    </div>
+
     <!-- Reports Stats Row -->
     <div class="stats-row">
         <div class="stat-card">
@@ -55,46 +63,34 @@
         </div>
     </div>
 
-    <!-- Header with Export -->
-    <div class="header">
-        <div></div>
-        <div class="header-right">
-            <button class="btn-compare" style="padding: 8px 16px; font-size: 0.9rem;" onclick="exportCSV()">
-                <i data-lucide="download" style="width:16px; height:16px; margin-right: 8px;"></i>
-                Export CSV
-            </button>
-        </div>
-    </div>
-
     <!-- History Table Section -->
     <div class="tasks-section">
         <div class="tasks-header">
             <h3>Full Comparison History</h3>
-            <div style="display: flex; gap: 10px;">
+            <div style="display: flex; gap: 12px; align-items: center;">
                 <select id="histFilterStatus" class="period-select" onchange="loadReportsHistory()">
                     <option value="">All Statuses</option>
-                    <option value="PASS">Pass</option>
-                    <option value="CHANGES FOUND">Changes Found</option>
-                    <option value="FAIL">Fail</option>
+                    <option value="PASS">Pass Only</option>
+                    <option value="CHANGES FOUND">Changes Only</option>
+                    <option value="FAIL">Fail Only</option>
                 </select>
+                <button class="btn-compare" style="padding: 10px 20px; font-size: 0.9rem;" onclick="exportCSV()">
+                    <i data-lucide="download" style="width:18px; height:18px; margin-right: 8px;"></i>
+                    Export CSV
+                </button>
             </div>
         </div>
 
-        <div style="overflow-x: auto;">
-            <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+        <div class="table-card">
+            <table class="modern-table">
                 <thead>
-                    <tr style="text-align: left; border-bottom: 2px solid var(--border);">
-                        <th style="padding: 12px; color: var(--text-secondary); font-weight: 600;">Date</th>
-                        <th style="padding: 12px; color: var(--text-secondary); font-weight: 600;">Original
-                        </th>
-                        <th style="padding: 12px; color: var(--text-secondary); font-weight: 600;">Revised
-                        </th>
-                        <th style="padding: 12px; color: var(--text-secondary); font-weight: 600;">Pages
-                        </th>
-                        <th style="padding: 12px; color: var(--text-secondary); font-weight: 600;">Status
-                        </th>
-                        <th style="padding: 12px; color: var(--text-secondary); font-weight: 600;">Actions
-                        </th>
+                    <tr>
+                        <th>Date</th>
+                        <th>Original File</th>
+                        <th>Revised File</th>
+                        <th>Pages</th>
+                        <th>Status</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody id="reportsTableBody">

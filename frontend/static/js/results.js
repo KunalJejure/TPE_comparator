@@ -38,7 +38,7 @@ function renderResults(data) {
 
     const total = data.total_pages || 0;
     const pages = data.pages || [];
-    const passed = pages.filter(p => p.status === 'PASS').length;
+    const passed = pages.filter(p => p.status === 'PASS' || (p.image_similarity !== undefined && p.image_similarity >= 0.999)).length;
     const changed = pages.filter(p => p.status === 'FAIL').length;
     const avgConf = pages.length > 0
         ? (pages.reduce((s, p) => s + (p.confidence || 0), 0) / pages.length * 100).toFixed(1)
@@ -57,7 +57,7 @@ function renderResults(data) {
     // Count pages with visual diffs
     const visualDiffPages = pages.filter(p =>
         p.disposition === 'added' || p.disposition === 'removed' ||
-        (p.image_similarity !== undefined && p.image_similarity < 0.999)
+        (p.image_similarity !== undefined && p.image_similarity < 1.0)
     ).length;
 
     let html = `
@@ -215,9 +215,9 @@ function renderAllTextDiffs(pages, data) {
         else if (status === 'ADDED') badgeClass = 'added';
         else if (status === 'REMOVED') badgeClass = 'removed';
 
-        const hasVisual = p.image_similarity !== undefined && p.image_similarity < 0.999;
+        const hasVisual = p.image_similarity !== undefined && p.image_similarity < 1.0;
         html += `
-        <div class="page-section" data-status="${status}" data-has-visual-diff="${hasVisual}">
+        <div class="page-section" data-status="${status}" data-has-visual-diff="${hasVisual}" data-image-similarity="${p.image_similarity || 1.0}">
             <div class="page-section-header">
                 <div class="psh-left">
                     <i data-lucide="chevron-down" style="width:16px;height:16px;" class="chevron"></i>
@@ -243,7 +243,7 @@ function renderAllVisualDiffs(pages, idPrefix = '') {
     const diffPages = pages ? pages.filter(p =>
         p.disposition === 'added' ||
         p.disposition === 'removed' ||
-        (p.image_similarity !== undefined && p.image_similarity < 0.999)
+        (p.image_similarity !== undefined && p.image_similarity < 1.0)
     ) : [];
 
     if (diffPages.length === 0) {
@@ -261,9 +261,9 @@ function renderAllVisualDiffs(pages, idPrefix = '') {
         else if (status === 'ADDED') badgeClass = 'added';
         else if (status === 'REMOVED') badgeClass = 'removed';
 
-        const hasVisualChange = p.disposition === 'added' || p.disposition === 'removed' || (p.image_similarity !== undefined && p.image_similarity < 0.999);
+        const hasVisualChange = p.disposition === 'added' || p.disposition === 'removed' || (p.image_similarity !== undefined && p.image_similarity < 1.0);
         html += `
-        <div class="page-section" data-status="${status}" data-has-visual-diff="${hasVisualChange}">
+        <div class="page-section" data-status="${status}" data-has-visual-diff="${hasVisualChange}" data-image-similarity="${p.image_similarity || 1.0}">
             <div class="page-section-header">
                 <div class="psh-left">
                     <i data-lucide="chevron-down" style="width:16px;height:16px;" class="chevron"></i>
@@ -645,7 +645,8 @@ function filterPages(filterType, btnEl) {
         if (filterType === 'changed') {
             show = status !== 'PASS';
         } else if (filterType === 'identical') {
-            show = status === 'PASS';
+            const similarity = parseFloat(section.getAttribute('data-image-similarity')) || 0;
+            show = status === 'PASS' || similarity >= 0.999;
         }
         // 'all' shows everything
 

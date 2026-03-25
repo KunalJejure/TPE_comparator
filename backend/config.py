@@ -25,6 +25,13 @@ AZURE_CLIENT_SECRET = os.getenv("AZURE_CLIENT_SECRET")
 AZURE_TENANT_ID = os.getenv("AZURE_TENANT_ID")
 SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret-key")
 
+# ---- Supabase ----
+SUPABASE_URL = os.getenv("SUPABASE_URL")
+SUPABASE_KEY = os.getenv("SUPABASE_KEY")
+
+if not SUPABASE_URL or not SUPABASE_KEY:
+    logger.warning("Supabase credentials are not fully set. Cloud database will be unavailable.")
+
 AZURE_METADATA_URL = f"https://login.microsoftonline.com/{AZURE_TENANT_ID}/v2.0/.well-known/openid-configuration"
 
 # ---- App URL ----
@@ -43,3 +50,7 @@ UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 STATIC_DIR = BASE_DIR / "frontend" / "static"
 REPORTS_DIR = STATIC_DIR / "reports"
 REPORTS_DIR.mkdir(parents=True, exist_ok=True)
+
+# Persistent storage for comparison images (used in side-by-side view history)
+COMPARISONS_DATA_DIR = STATIC_DIR / "data" / "comparisons"
+COMPARISONS_DATA_DIR.mkdir(parents=True, exist_ok=True)

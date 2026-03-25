@@ -22,6 +22,8 @@ _RED_BORDER = (0, 0, 220)         # crisp red border
 _RED_FILL = (200, 210, 255)       # very light red / pink fill
 _GREEN_BORDER = (0, 180, 0)       # green border for additions
 _GREEN_FILL = (210, 255, 210)     # very light green fill
+_YELLOW_BORDER = (0, 200, 255)    # amber/yellow border
+_YELLOW_FILL = (180, 240, 255)    # light yellow fill
 
 # Overlay fill opacity (0.0 = invisible, 1.0 = opaque)
 _FILL_ALPHA = 0.18
@@ -29,12 +31,19 @@ _BORDER_THICKNESS = 2
 _PADDING = 6  # px around each changed region
 
 
-def _ensure_same_size(img1: np.ndarray, img2: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
-    """Resize img2 to match img1's dimensions if they differ."""
-    if img1.shape[:2] != img2.shape[:2]:
-        img2 = cv2.resize(img2, (img1.shape[1], img1.shape[0]),
-                          interpolation=cv2.INTER_LANCZOS4)
-    return img1, img2
+def _ensure_same_size(img1: np.ndarray, img2: np.ndarray) -> Tuple[np.ndarray, np.ndarray, float, float]:
+    """Resize img2 to match img1's dimensions if they differ.
+    Returns (img1, img2, scale_x, scale_y) where scale factors are for img2.
+    """
+    h1, w1 = img1.shape[:2]
+    h2, w2 = img2.shape[:2]
+
+    if (h1, w1) != (h2, w2):
+        logger.warning("Image size mismatch: img1=%s, img2=%s. Resizing img2 to match img1.", (h1, w1), (h2, w2))
+        img2 = cv2.resize(img2, (w1, h1), interpolation=cv2.INTER_LANCZOS4)
+        return img1, img2, w1 / float(w2), h1 / float(h2)
+
+    return img1, img2, 1.0, 1.0
 
 
 def _compute_diff_regions(gray1: np.ndarray, gray2: np.ndarray,
@@ -112,57 +121,91 @@ def _draw_bounding_boxes(canvas: np.ndarray, contours,
                          border_colour, fill_colour,
                          alpha: float = _FILL_ALPHA,
                          padding: int = _PADDING,
-                         border: int = _BORDER_THICKNESS):
+                         border: int = _BORDER_THICKNESS,
+                         special_bboxes: List[List[float]] = None) -> Tuple[np.ndarray, int]:
     """Draw semi-transparent highlighted bounding boxes on *canvas*.
 
-    The technique:
-      1. Create a separate highlight layer with filled rectangles.
-      2. Alpha-blend it onto the canvas (keeps text readable).
-      3. Draw crisp borders on top after blending.
+    If *special_bboxes* is provided, any ROI that intersects one of them
+    is drawn in YELLOW instead of the default *border_colour*.
+    
+    Returns:
+        (canvas, non_special_count)
     """
     h, w = canvas.shape[:2]
-    rects = []
+    rects_with_colors = []
+    special_count = 0
 
     for cnt in contours:
-        x, y, bw, bh = cv2.boundingRect(cnt)
+        rx, ry, bw, bh = cv2.boundingRect(cnt)
         # Apply padding
-        x1 = max(0, x - padding)
-        y1 = max(0, y - padding)
-        x2 = min(w, x + bw + padding)
-        y2 = min(h, y + bh + padding)
-        rects.append((x1, y1, x2, y2))
+        x1 = max(0, rx - padding)
+        y1 = max(0, ry - padding)
+        x2 = min(w, rx + bw + padding)
+        y2 = min(h, ry + bh + padding)
+        
+        # Check overlap with special_bboxes (e.g. date/time regions)
+        # We add a slight epsilon (2px) to the bboxes to make the intersection check robust
+        is_special = False
+        if special_bboxes:
+            eps = 5.0 # Increased epsilon for more robust matching
+            for s_bbox in special_bboxes:
+                # sx0, sy0, sx1, sy1 = s_bbox
+                # Standard AABB intersection
+                if not (x2 + eps < s_bbox[0] or x1 - eps > s_bbox[2] or 
+                        y2 + eps < s_bbox[1] or y1 - eps > s_bbox[3]):
+                    is_special = True
+                    logger.debug("Contour [%d,%d,%d,%d] MATCHED special bbox %s (eps=%.1f)", 
+                                 x1, y1, x2, y2, s_bbox, eps)
+                    break
+            if not is_special:
+                logger.debug("Contour [%d,%d,%d,%d] did NOT match any of %d special bboxes", 
+                             x1, y1, x2, y2, len(special_bboxes))
+        
+        if is_special:
+            special_count += 1
+            b_col = _YELLOW_BORDER
+            f_col = _YELLOW_FILL
+        else:
+            b_col = border_colour
+            f_col = fill_colour
+            
+        rects_with_colors.append(((x1, y1, x2, y2), b_col, f_col))
 
-    if not rects:
-        return canvas
+    if not rects_with_colors:
+        return canvas, 0
 
-    # 1 – paint fills on a copy
+    # 1 – paint fills on a separate layer
     highlight = canvas.copy()
-    for (x1, y1, x2, y2) in rects:
-        cv2.rectangle(highlight, (x1, y1), (x2, y2), fill_colour, -1)
+    for (box, b_col, f_col) in rects_with_colors:
+        cv2.rectangle(highlight, (box[0], box[1]), (box[2], box[3]), f_col, -1)
 
-    # 2 – alpha blend
+    # 2 – alpha blend the fills layer onto the canvas
     cv2.addWeighted(highlight, alpha, canvas, 1.0 - alpha, 0, canvas)
 
-    # 3 – crisp borders on top
-    for (x1, y1, x2, y2) in rects:
-        cv2.rectangle(canvas, (x1, y1), (x2, y2), border_colour, border)
+    # 3 – draw crisp borders on top
+    for (box, b_col, f_col) in rects_with_colors:
+        cv2.rectangle(canvas, (box[0], box[1]), (box[2], box[3]), b_col, border)
 
-    return canvas
+    return canvas, len(contours) - special_count
 
 
 # ── Public API ───────────────────────────────────────────────────────
 
-def generate_diff_overlay(img1: Image.Image, img2: Image.Image):
+def generate_diff_overlay(img1: Image.Image, img2: Image.Image,
+                          date_time_regions1: List[List[float]] = None,
+                          date_time_regions2: List[List[float]] = None):
     """Create diff overlay images for comparison views.
 
     Generates:
-      1. A combined overlay (revised base + red highlights)
-      2. Original page with red highlights
-      3. Revised page with yellow highlights
+      1. A combined overlay (revised base + mixed red/yellow highlights)
+      2. Original page with mixed red/yellow highlights
+      3. Revised page with mixed red/yellow highlights
 
     Args:
         img1: Original page (PIL).
         img2: Revised page (PIL).
+        date_time_regions1: Date/time bboxes for original page (pixels).
+        date_time_regions2: Date/time bboxes for revised page (pixels).
 
     Returns:
         Tuple of (overlay_pil, orig_highlight_pil, rev_highlight_pil, similarity, region_count).
@@ -170,42 +213,50 @@ def generate_diff_overlay(img1: Image.Image, img2: Image.Image):
     cv1 = cv2.cvtColor(np.array(img1.convert("RGB")), cv2.COLOR_RGB2BGR)
     cv2_img = cv2.cvtColor(np.array(img2.convert("RGB")), cv2.COLOR_RGB2BGR)
 
-    cv1, cv2_img = _ensure_same_size(cv1, cv2_img)
+    cv1, cv2_img, sx2, sy2 = _ensure_same_size(cv1, cv2_img)
+
+    # Adjust date_time_regions2 if img2 was resized
+    if (sx2 != 1.0 or sy2 != 1.0) and date_time_regions2:
+        logger.info("Scaling date_time_regions2 by (%.3f, %.3f) due to image resize", sx2, sy2)
+        date_time_regions2 = [
+            [b[0] * sx2, b[1] * sy2, b[2] * sx2, b[3] * sy2]
+            for b in date_time_regions2
+        ]
 
     gray1 = cv2.cvtColor(cv1, cv2.COLOR_BGR2GRAY)
     gray2 = cv2.cvtColor(cv2_img, cv2.COLOR_BGR2GRAY)
 
     score, contours = _compute_diff_regions(gray1, gray2)
 
-    # 1. Combined Overlay (Revised base + RED boxes)
+    # 1. Combined Overlay (Revised base + mixed RED/YELLOW boxes)
     overlay = cv2_img.copy()
-    overlay = _draw_bounding_boxes(overlay, contours,
-                                   border_colour=_RED_BORDER,
-                                   fill_colour=_RED_FILL)
+    overlay, non_special_count = _draw_bounding_boxes(overlay, contours,
+                                                      border_colour=_RED_BORDER,
+                                                      fill_colour=_RED_FILL,
+                                                      special_bboxes=date_time_regions2)
 
-    # 2. Original Highlight (Original base + RED boxes)
+    # 2. Original Highlight (Original base + mixed RED/YELLOW boxes)
     orig_highlight = cv1.copy()
-    orig_highlight = _draw_bounding_boxes(orig_highlight, contours,
-                                          border_colour=_RED_BORDER,
-                                          fill_colour=_RED_FILL)
+    orig_highlight, _ = _draw_bounding_boxes(orig_highlight, contours,
+                                             border_colour=_RED_BORDER,
+                                             fill_colour=_RED_FILL,
+                                             special_bboxes=date_time_regions1)
 
-    # 3. Revised Highlight (Revised base + YELLOW boxes)
-    # OpenCV uses BGR. Yellow is (0, 255, 255). We'll use a slightly softer yellow.
-    YELLOW_BORDER = (0, 200, 255)
-    YELLOW_FILL = (180, 240, 255)
+    # 3. Revised Highlight (Revised base + mixed RED/YELLOW boxes)
     rev_highlight = cv2_img.copy()
-    rev_highlight = _draw_bounding_boxes(rev_highlight, contours,
-                                         border_colour=YELLOW_BORDER,
-                                         fill_colour=YELLOW_FILL)
+    rev_highlight, _ = _draw_bounding_boxes(rev_highlight, contours,
+                                            border_colour=_RED_BORDER,
+                                            fill_colour=_RED_FILL,
+                                            special_bboxes=date_time_regions2)
 
     similarity = float(max(0.0, min(1.0, score)))
     result_overlay = Image.fromarray(cv2.cvtColor(overlay, cv2.COLOR_BGR2RGB))
     result_orig_hl = Image.fromarray(cv2.cvtColor(orig_highlight, cv2.COLOR_BGR2RGB))
     result_rev_hl = Image.fromarray(cv2.cvtColor(rev_highlight, cv2.COLOR_BGR2RGB))
 
-    logger.info("Visual diff: similarity=%.4f  regions=%d",
-                similarity, len(contours))
-    return result_overlay, result_orig_hl, result_rev_hl, similarity, len(contours)
+    logger.info("Visual diff: similarity=%.4f  regions=%d (neglected=%d)",
+                similarity, len(contours), len(contours) - non_special_count)
+    return result_overlay, result_orig_hl, result_rev_hl, similarity, non_special_count
 
 
 def compute_similarity(img1: Image.Image, img2: Image.Image) -> float:

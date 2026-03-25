@@ -16,6 +16,7 @@ const viewTitles = {
     reports: { title: 'Reports & Analytics', subtitle: 'Detailed insights into your comparison history.' },
     requalifications: { title: 'Requalifications', subtitle: 'Batch compare multiple PDF pairs simultaneously.' },
     scopeValidator: { title: 'Scope Validator', subtitle: 'Verify scope and deliverables coverage in your validation plan.' },
+    settings: { title: 'Settings', subtitle: 'Manage application preferences and security settings.' },
 };
 
 function switchView(viewName) {
@@ -62,15 +63,9 @@ function switchView(viewName) {
 function restoreSavedView() {
     try {
         const savedView = localStorage.getItem('activeView');
-        console.log('[App] Attempting to restore view:', savedView);
-
-        // Only switch if it's a valid view
-        if (savedView && viewTitles[savedView]) {
-            // Check if we are arguably already on the view (avoid flicker if possible, though switchView handles toggles)
-            // But we must run switchView to trigger specific load functions (like loadRequalifications)
+        // Do NOT restore the results view — it requires live data that won't be present on fresh load
+        if (savedView && viewTitles[savedView] && savedView !== 'results') {
             switchView(savedView);
-        } else {
-            console.log('[App] No valid saved view found, staying on default.');
         }
     } catch (err) {
         console.error('[App] Failed to restore view:', err);
@@ -170,16 +165,19 @@ function toggleTheme() {
 }
 
 function updateThemeIcons(theme) {
-    const sunIcon = document.getElementById('themeIconSun');
-    const moonIcon = document.getElementById('themeIconMoon');
+    const sunIcon = document.getElementById('settingsThemeIconSun');
+    const moonIcon = document.getElementById('settingsThemeIconMoon');
+    const label = document.getElementById('themeStatusLabel');
     
     if (sunIcon && moonIcon) {
         if (theme === 'light') {
-            sunIcon.style.display = 'none';
-            moonIcon.style.display = 'block';
-        } else {
             sunIcon.style.display = 'block';
             moonIcon.style.display = 'none';
+            if (label) label.textContent = 'Light Mode Active';
+        } else {
+            sunIcon.style.display = 'none';
+            moonIcon.style.display = 'block';
+            if (label) label.textContent = 'Dark Mode Active';
         }
     }
     // Re-init icons to be safe
@@ -195,9 +193,110 @@ function initTheme() {
 // Run init
 initTheme();
 
-// Close on Esc key
-document.addEventListener('keydown', function (event) {
-    if (event.key === "Escape") {
-        closeImageModal();
+// ================================================================
+// TOAST NOTIFICATIONS
+// ================================================================
+function showToast(message, type = 'info') {
+    const toastContainer = document.getElementById('toastContainer');
+    if (!toastContainer) {
+        const container = document.createElement('div');
+        container.id = 'toastContainer';
+        container.style.cssText = `
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        `;
+        document.body.appendChild(container);
     }
-});
+
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    
+    // Style the toast
+    let bgColor = 'var(--accent)';
+    let icon = 'info';
+    if (type === 'success') {
+        bgColor = 'var(--success)';
+        icon = 'check-circle';
+    } else if (type === 'danger' || type === 'error') {
+        bgColor = 'var(--danger)';
+        icon = 'alert-circle';
+    } else if (type === 'warning') {
+        bgColor = 'var(--warning)';
+        icon = 'alert-triangle';
+    }
+
+    toast.style.cssText = `
+        background: var(--card);
+        color: var(--text-primary);
+        padding: 16px 24px;
+        border-radius: var(--radius-sm);
+        box-shadow: 0 10px 40px -10px rgba(0,0,0,0.15), 0 0 0 1px var(--card-border);
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        min-width: 300px;
+        max-width: 450px;
+        transform: translateX(100px);
+        opacity: 0;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        border-left: 4px solid ${bgColor};
+    `;
+
+    toast.innerHTML = `
+        <i data-lucide="${icon}" style="width:20px; height:20px; color:${bgColor}"></i>
+        <div style="flex:1; font-size:0.92rem; font-weight:500;">${message}</div>
+        <button onclick="this.parentElement.remove()" style="background:none; border:none; color:var(--text-muted); cursor:pointer; padding:4px;">
+            <i data-lucide="x" style="width:16px; height:16px;"></i>
+        </button>
+    `;
+
+    document.getElementById('toastContainer').appendChild(toast);
+    if (window.lucide) lucide.createIcons();
+
+    // Trigger animation
+    setTimeout(() => {
+        toast.style.transform = 'translateX(0)';
+        toast.style.opacity = '1';
+    }, 10);
+
+    
+    // Auto-remove
+    setTimeout(() => {
+        toast.style.transform = 'translateX(100px)';
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 400);
+    }, 4000);
+}
+
+
+// ================================================================
+// ACCORDION / EXPANDABLE LOGIC
+// ================================================================
+function toggleAccordion(event, element) {
+    // Prevent toggle if clicking interactive elements inside
+    const interactive = event.target.closest('button, a, input, select, .toggle-switch-label, range');
+    if (interactive && !element.contains(interactive)) return; 
+    if (interactive) return;
+
+    // Toggle current
+    const isActive = element.classList.contains('active');
+    
+    // Optional: Close others in the same list
+    const list = element.closest('.accordion-list') || element.closest('.tile-grid');
+    if (list) {
+        list.querySelectorAll('.accordion-item, .action-tile').forEach(item => {
+            item.classList.remove('active');
+        });
+    }
+
+    if (!isActive) {
+        element.classList.add('active');
+    }
+}
+
+

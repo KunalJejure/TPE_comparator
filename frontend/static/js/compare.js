@@ -109,7 +109,11 @@ function resetUpload() {
 // ================================================================
 // RUN COMPARISON
 // ================================================================
-let lastResult = null;
+// lastResult is declared in results.js — shared global
+// (if results.js hasn't loaded yet, declare a fallback here)
+if (typeof lastResult === 'undefined') {
+    var lastResult = null;
+}
 
 async function runCompare() {
     if (!originalFile || !revisedFile) return;
@@ -133,11 +137,10 @@ async function runCompare() {
         progressFill.style.width = progress + '%';
     }, 500);
 
-    addActivity('SY', '#6366F1', 'System', 'Uploading & processing documents...');
-
-    // Update dashboard task statuses
-    updateTaskStatus(0, 'In progress', 'red');
-    updateTaskStatus(1, 'In progress', 'red');
+    // Log activity (safe call)
+    if (typeof addActivity === 'function') {
+        addActivity('SY', '#6366F1', 'System', 'Uploading & processing documents...');
+    }
 
     const formData = new FormData();
     formData.append('original', originalFile);
@@ -166,38 +169,51 @@ async function runCompare() {
         const data = await resp.json();
         lastResult = data;
 
-        // Update dashboard stats
+        // Send desktop notification
+        if (typeof NotificationManager !== 'undefined') {
+            const passed = data.pages ? data.pages.filter(p => p.status === 'PASS').length : 0;
+            const total = data.total_pages || 0;
+            const status = data.overall?.overall_change || (passed === total ? 'No' : 'Some');
+            NotificationManager.sendNotification(
+                'Comparison Completed',
+                `Analysis of ${data.original_name} vs ${data.revised_name} is done. ${status} changes detected.`
+            );
+        }
+
+        // Compute summary stats
         const total = data.total_pages || 0;
         const passed = data.pages ? data.pages.filter(p => p.status === 'PASS').length : 0;
         const failed = total - passed;
 
-        document.getElementById('statTotal').textContent = total;
-        document.getElementById('statMatches').textContent = passed;
-        document.getElementById('statDiffs').textContent = failed;
-        document.getElementById('doneTag').textContent = `Done ${Math.round((passed / total) * 100)}%`;
+        // Log AI activity (safe call)
+        if (typeof addActivity === 'function') {
+            addActivity('AI', '#EC4899', 'Groq AI',
+                `Analysis complete: ${data.overall?.overall_change || 'N/A'} changes detected. Confidence: ${((data.overall?.confidence || 0) * 100).toFixed(0)}%`);
+        }
 
-        // Update dashboard tasks
-        updateTaskStatus(0, 'Done', 'green');
-        updateTaskStatus(1, 'Done', 'green');
-        updateTaskStatus(2, 'Done', 'green');
+        // Update chart if available (safe call)
+        if (typeof updateChart === 'function') {
+            updateChart(data);
+        }
 
-        addActivity('AI', '#EC4899', 'Groq AI',
-            `Analysis complete: ${data.overall?.overall_change || 'N/A'} changes detected. Confidence: ${((data.overall?.confidence || 0) * 100).toFixed(0)}%`);
-
-        // Update chart
-        updateChart(data);
-
-        // Show results nav item
-        document.getElementById('navResults').style.display = 'flex';
+        // Show results nav item (safe)
+        const navResults = document.getElementById('navResults');
+        if (navResults) navResults.style.display = 'flex';
 
         // Render results and switch to results view
-        renderResults(data);
-        switchView('results');
+        if (typeof renderResults === 'function') {
+            renderResults(data);
+        }
+        if (typeof switchView === 'function') {
+            switchView('results');
+        }
 
     } catch (err) {
         clearInterval(progressInterval);
-        addActivity('SY', '#EF4444', 'Error', err.message);
-        updateTaskStatus(0, 'Failed', 'red');
+        if (typeof addActivity === 'function') {
+            addActivity('SY', '#EF4444', 'Error', err.message);
+        }
+        console.error('Comparison error:', err);
     } finally {
         btn.disabled = false;
         btnText.textContent = 'Compare Documents';

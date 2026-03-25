@@ -4,121 +4,58 @@
      ============================================================ -->
 <div class="view active" id="view-dashboard">
 
-    <!-- Stats Row -->
-    <div class="stats-row">
-        <div class="stat-card">
-            <div class="stat-icon blue">
-                <i data-lucide="files" style="width:22px; height:22px;"></i>
-            </div>
-            <div class="stat-info">
-                <div class="stat-label">Comparisons</div>
-                <div class="stat-value" id="statTotal">0</div>
-                <div class="stat-change up">
-                    <i data-lucide="trending-up" style="width:14px; height:14px;"></i>
-                    Ready
-                </div>
-            </div>
+    <!-- Welcome Section (Matching Image) -->
+    <div class="welcome-section">
+        <div id="welcome-avatar-container">
+            <!-- Populated via JS: either <img class="welcome-avatar"> or <div class="welcome-avatar-initials"> -->
+            <div class="welcome-avatar-initials" id="welcome-avatar-initials">??</div>
         </div>
-        <div class="stat-card">
-            <div class="stat-icon green">
-                <i data-lucide="check-circle" style="width:22px; height:22px;"></i>
-            </div>
-            <div class="stat-info">
-                <div class="stat-label">Matches</div>
-                <div class="stat-value" id="statMatches">0</div>
-                <div class="stat-change up">
-                    <i data-lucide="trending-up" style="width:14px; height:14px;"></i>
-                    Identical pages
-                </div>
-            </div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-icon red">
-                <i data-lucide="alert-triangle" style="width:22px; height:22px;"></i>
-            </div>
-            <div class="stat-info">
-                <div class="stat-label">Differences</div>
-                <div class="stat-value" id="statDiffs">0</div>
-                <div class="stat-change down">
-                    <i data-lucide="trending-down" style="width:14px; height:14px;"></i>
-                    Pages with changes
-                </div>
-            </div>
+        <div class="welcome-text">
+            <h2 id="welcome-user-greeting">Welcome</h2>
+            <p id="welcome-user-email">Loading user information...</p>
         </div>
     </div>
 
-    <!-- Performance Chart -->
-    <div class="chart-card">
-        <div class="chart-header">
-            <h3>Performance</h3>
-            <select class="period-select">
-                <option>Last 7 comparisons</option>
-                <option>Last 30 comparisons</option>
-            </select>
+    <!--div class="section-title">Quick Actions</div-->
+
+    <div class="tile-grid">
+        <!-- New Comparison -->
+        <div class="action-tile" onclick="switchView('compare')">
+            <div class="tile-icon-box" style="background:#ECFDF5; color:#10B981;">
+                <i data-lucide="files" style="width:28px; height:28px;"></i>
+            </div>
+            <h4>New Comparison</h4>
+            <p>Start a new PDF analysis session with side-by-side diffing and AI analysis.</p>
         </div>
-        <div class="chart-container">
-            <canvas id="perfChart"></canvas>
+
+        <!-- View Reports -->
+        <div class="action-tile" onclick="switchView('reports')">
+            <div class="tile-icon-box" style="background:#EFF6FF; color:#3B82F6;">
+                <i data-lucide="file-bar-chart" style="width:28px; height:28px;"></i>
+            </div>
+            <h4>View Reports</h4>
+            <p>Access historical comparison data, download PDF reports, and export analytics.</p>
+        </div>
+
+        <!-- Batch Analysis -->
+        <div class="action-tile" onclick="switchView('requalifications')">
+            <div class="tile-icon-box" style="background:#F5F3FF; color:#8B5CF6;">
+                <i data-lucide="layers" style="width:28px; height:28px;"></i>
+            </div>
+            <h4>Batch Analysis</h4>
+            <p>Compare multiple document pairs simultaneously for high-throughput QA.</p>
+            <p>Comming soon...</p>
+        </div>
+
+        <!-- Settings -->
+        <div class="action-tile" onclick="switchView('settings')">
+            <div class="tile-icon-box" style="background:#FFFBEB; color:#F59E0B;">
+                <i data-lucide="settings" style="width:28px; height:28px;"></i>
+            </div>
+            <h4>System Preferences</h4>
+            <p>Manage application theme, desktop notifications, and security settings.</p>
         </div>
     </div>
 
-    <!-- Recent Comparisons -->
-    <div class="tasks-section">
-        <div class="tasks-header">
-            <h3>Recent Comparisons</h3>
-            <span class="done-tag" id="doneTag">No results yet</span>
-        </div>
-        <div id="tasksList">
-            <div class="task-item">
-                <div class="task-icon purple">
-                    <i data-lucide="file-text" style="width:20px; height:20px;"></i>
-                </div>
-                <div class="task-info">
-                    <div class="task-name">Upload PDFs to begin</div>
-                    <div class="task-sub">Go to Compare tab to upload two PDF files</div>
-                </div>
-                <div class="task-status">
-                    <div class="status-dot orange"></div>
-                    Waiting
-                </div>
-                <div class="task-time">--</div>
-                <div class="task-menu">
-                    <i data-lucide="more-horizontal" style="width:18px; height:18px;"></i>
-                </div>
-            </div>
-            <div class="task-item">
-                <div class="task-icon pink">
-                    <i data-lucide="scan-search" style="width:20px; height:20px;"></i>
-                </div>
-                <div class="task-info">
-                    <div class="task-name">AI-Powered Analysis</div>
-                    <div class="task-sub">Semantic text comparison via Groq LLM</div>
-                </div>
-                <div class="task-status">
-                    <div class="status-dot orange"></div>
-                    On hold
-                </div>
-                <div class="task-time">--</div>
-                <div class="task-menu">
-                    <i data-lucide="more-horizontal" style="width:18px; height:18px;"></i>
-                </div>
-            </div>
-            <div class="task-item">
-                <div class="task-icon blue">
-                    <i data-lucide="bar-chart-3" style="width:20px; height:20px;"></i>
-                </div>
-                <div class="task-info">
-                    <div class="task-name">Visual Diff Report</div>
-                    <div class="task-sub">Page-by-page image overlay generation</div>
-                </div>
-                <div class="task-status">
-                    <div class="status-dot orange"></div>
-                    On hold
-                </div>
-                <div class="task-time">--</div>
-                <div class="task-menu">
-                    <i data-lucide="more-horizontal" style="width:18px; height:18px;"></i>
-                </div>
-            </div>
-        </div>
-    </div>
+
 </div>

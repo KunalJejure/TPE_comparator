@@ -21,8 +21,14 @@ from typing import Dict, Any, List, Optional
 from PIL import Image
 from fastapi import APIRouter, UploadFile, File, Form, HTTPException
 
-from backend.config import UPLOAD_DIR, REPORTS_DIR
-from backend.services.pdf_parser import extract_text, page_to_image
+from backend.config import UPLOAD_DIR, REPORTS_DIR, COMPARISONS_DATA_DIR
+from backend.services.pdf_parser import (
+    extract_text, 
+    extract_structured_text,
+    page_to_image, 
+    get_date_time_bboxes,
+    RENDER_DPI
+)
 from backend.services.page_aligner import align_pages
 from backend.services.visual_diff import generate_diff_overlay, compute_similarity
 from backend.database import add_comparison
@@ -52,7 +58,7 @@ def _normalize_text(text: str) -> str:
     return text.strip()
 
 
-# ── Image encoding ───────────────────────────────────────────────────
+# ── Image encoding & Saving ──────────────────────────────────────────
 # JPEG quality 82 gives a great quality-to-size ratio.  For a 30-page
 # PDF this cuts the response payload roughly 4× versus PNG.
 _IMG_FORMAT = "JPEG"
@@ -65,6 +71,17 @@ def _pil_to_base64(img: Image.Image) -> str:
     img.save(buf, format=_IMG_FORMAT, quality=_IMG_QUALITY)
     b64 = base64.b64encode(buf.getvalue()).decode("utf-8")
     return f"data:image/jpeg;base64,{b64}"
+
+def _save_comparison_image(img: Image.Image, job_id: str, filename: str) -> str:
+    """Save a PIL Image to the persistent storage and return its web URL."""
+    job_data_dir = COMPARISONS_DATA_DIR / job_id
+    job_data_dir.mkdir(parents=True, exist_ok=True)
+    
+    file_path = job_data_dir / filename
+    img.save(file_path, format=_IMG_FORMAT, quality=_IMG_QUALITY)
+    
+    # Return relative URL for frontend
+    return f"/static/data/comparisons/{job_id}/{filename}"
 
 
 # ── Text diff helpers ────────────────────────────────────────────────
@@ -298,7 +315,8 @@ def _run_ai_comparison(
         for p in page_results:
             page_idx = p["page"] - 1  # 0-based index
             has_text_changes = p.get("text_changes_count", 0) > 0
-            has_visual_changes = p.get("image_similarity", 1.0) < 0.98
+            # Step 10: Use diff_region_count (non-special regions) to decide if image changed
+            has_visual_changes = p.get("diff_region_count", 0) > 0
             is_added_or_removed = p.get("disposition") in ("added", "removed")
 
             image_summary.append({
@@ -312,7 +330,13 @@ def _run_ai_comparison(
             if has_text_changes or has_visual_changes or is_added_or_removed:
                 orig_text = texts_original[page_idx] if page_idx < len(texts_original) else ""
                 rev_text = texts_revised[page_idx] if page_idx < len(texts_revised) else ""
-                diff_summary = _summarize_line_diff(p.get("line_diff", []))
+                
+                # Filter line diff to exclude date-only changes from the AI summary context
+                filtered_line_diff = [
+                    d for d in p.get("line_diff", [])
+                    if d["type"] == "equal" or not is_date_time_string(d.get("right_content") or d.get("left_content") or "")
+                ]
+                diff_summary = _summarize_line_diff(filtered_line_diff)
 
                 changed_pages.append({
                     "page": p["page"],
@@ -351,10 +375,12 @@ def process_comparison(
     start_page: Optional[int] = None,
     end_page: Optional[int] = None,
 ) -> dict:
-    # --- Text extraction ---
+    # --- Structured Text extraction ---
+    struct_original = extract_structured_text(str(original_path))
+    struct_revised = extract_structured_text(str(revised_path))
 
-    texts_original = extract_text(str(original_path))
-    texts_revised = extract_text(str(revised_path))
+    texts_original = [p["raw_text"] for p in struct_original]
+    texts_revised = [p["raw_text"] for p in struct_revised]
 
     # --- Page range slicing (optional) ---
     # Convert 1-based user input to 0-based slice indices.
@@ -362,10 +388,15 @@ def process_comparison(
     page_offset = 0
     if start_page is not None or end_page is not None:
         sp = max((start_page or 1) - 1, 0)  # 0-based start
-        ep_orig = end_page if end_page else len(texts_original)
-        ep_rev = end_page if end_page else len(texts_revised)
-        texts_original = texts_original[sp:ep_orig]
-        texts_revised = texts_revised[sp:ep_rev]
+        ep_orig = end_page if end_page else len(struct_original)
+        ep_rev = end_page if end_page else len(struct_revised)
+        
+        struct_original = struct_original[sp:ep_orig]
+        struct_revised = struct_revised[sp:ep_rev]
+        
+        texts_original = [p["raw_text"] for p in struct_original]
+        texts_revised = [p["raw_text"] for p in struct_revised]
+        
         page_offset = sp
         logger.info(
             "Job %s — page range applied: pages %d–%d (offset=%d)",
@@ -426,7 +457,21 @@ def process_comparison(
         page_data["line_diff"] = line_diff
 
         # Count changes
-        changes_count = sum(1 for d in line_diff if d["type"] != "equal")
+        from backend.services.pdf_parser import is_date_time_string
+        changes_count = 0
+        skipped_dates = 0
+        for d in line_diff:
+            if d["type"] != "equal":
+                content = d.get("right_content") or d.get("left_content") or ""
+                if not is_date_time_string(content):
+                    changes_count += 1
+                else:
+                    skipped_dates += 1
+        
+        if skipped_dates > 0:
+            logger.info("Page %d: Skipped %d date/time text changes. Meaningful text changes: %d", 
+                        page_num, skipped_dates, changes_count)
+        
         page_data["text_changes_count"] = changes_count
 
         # -- Image rendering (use offset-adjusted page indices) --
@@ -438,17 +483,27 @@ def process_comparison(
         if has_revised:
             img2 = page_to_image(str(revised_path), rev_idx + page_offset)
 
-        # Base64 page images
-        page_data["original_image"] = _pil_to_base64(img1) if img1 else None
-        page_data["revised_image"] = _pil_to_base64(img2) if img2 else None
+        # Save images as files instead of base64 to avoid database payload limits
+        page_data["original_image"] = _save_comparison_image(img1, job_id, f"page_{page_num}_orig.jpg") if img1 else None
+        page_data["revised_image"] = _save_comparison_image(img2, job_id, f"page_{page_num}_rev.jpg") if img2 else None
 
         # -- Visual diff overlay (only when both pages exist) --
         overlay_img = None
         if img1 and img2:
-            overlay_img, orig_hl_img, rev_hl_img, similarity, region_count = generate_diff_overlay(img1, img2)
-            page_data["overlay_image"] = _pil_to_base64(overlay_img)
-            page_data["original_highlight_image"] = _pil_to_base64(orig_hl_img)
-            page_data["revised_highlight_image"] = _pil_to_base64(rev_hl_img)
+            # Extract date/time bboxes for conditional highlighting
+            # Scale factor: RENDER_DPI / 72.0 (fitz uses points)
+            scale = RENDER_DPI / 72.0
+            dt_bboxes1 = get_date_time_bboxes(struct_original[orig_idx], scale=scale) if has_original else []
+            dt_bboxes2 = get_date_time_bboxes(struct_revised[rev_idx], scale=scale) if has_revised else []
+
+            overlay_img, orig_hl_img, rev_hl_img, similarity, region_count = generate_diff_overlay(
+                img1, img2, 
+                date_time_regions1=dt_bboxes1,
+                date_time_regions2=dt_bboxes2
+            )
+            page_data["overlay_image"] = _save_comparison_image(overlay_img, job_id, f"page_{page_num}_diff.jpg")
+            page_data["original_highlight_image"] = _save_comparison_image(orig_hl_img, job_id, f"page_{page_num}_orig_hl.jpg")
+            page_data["revised_highlight_image"] = _save_comparison_image(rev_hl_img, job_id, f"page_{page_num}_rev_hl.jpg")
             page_data["image_similarity"] = round(float(similarity), 4)
             page_data["diff_region_count"] = region_count
         elif img1 or img2:
@@ -478,7 +533,17 @@ def process_comparison(
                     meaningful_count += 1
 
             if meaningful_count > 0 or has_image_changes:
-                page_data["status"] = "FAIL"
+                # Double check that the image changes aren't JUST dates 
+                # (though generate_diff_overlay now returns non-special count,
+                # we already checked has_image_changes = page_data["image_similarity"] < 0.98)
+                # If region_count is 0, it means all visual changes were special (dates)
+                if page_data["diff_region_count"] == 0 and meaningful_count == 0:
+                     logger.info("Page %d: All changes were date/time. Marking as PASS.", page_num)
+                     page_data["status"] = "PASS"
+                else:
+                    logger.info("Page %d: Found %d meaningful text changes and %d visual regions. Marking as FAIL.", 
+                                page_num, meaningful_count, page_data["diff_region_count"])
+                    page_data["status"] = "FAIL"
             elif trivial_count > 0:
                 page_data["status"] = "REVIEW"
             else:

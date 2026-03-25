@@ -34,3 +34,4 @@ frontend/package-lock.json
 
 # Agent
 .agent/
+data

@@ -594,6 +594,15 @@ async function runAllRequalifications() {
 
     spinner.style.display = 'none';
     progressText.textContent = `All done! ${successes} succeeded, ${failures} failed`;
+
+    // Send desktop notification
+    if (typeof NotificationManager !== 'undefined') {
+        NotificationManager.sendNotification(
+            'Batch Comparison Completed',
+            `${pairs.length} pairs processed. ${successes} succeeded, ${failures} failed.`
+        );
+    }
+
     lucide.createIcons();
 }
 

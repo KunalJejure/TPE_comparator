@@ -1,0 +1,85 @@
+<!-- ============================================================
+     SETTINGS VIEW COMPONENT
+     Contains: Theme toggle, Language settings, etc.
+     ============================================================ -->
+<div class="view" id="view-settings">
+
+    <div class="section-title">Application Preferences</div>
+    
+    <div class="tile-grid">
+        <!-- Appearance / Theme -->
+        <div class="action-tile" id="tile-theme" onclick="toggleAccordion(event, this)">
+            <div class="tile-icon-box" style="background:#EFF6FF; color:#3B82F6;">
+                <i data-lucide="sun" id="settingsThemeIconSun" style="width:28px; height:28px;"></i>
+                <i data-lucide="moon" id="settingsThemeIconMoon" style="width:28px; height:28px; display: none;"></i>
+            </div>
+            <h4 id="themeStatusLabel">Light Mode Active</h4>
+            <p>Toggle between dark and light themes for a comfortable experience.</p>
+            
+            <div class="accordion-content">
+                <button class="btn-primary" onclick="toggleTheme()" style="margin-top: 20px; padding: 10px 20px; font-size: 0.85rem;">
+                    <i data-lucide="refresh-cw" style="width:16px; height:16px;"></i>
+                    Switch Theme
+                </button>
+            </div>
+        </div>
+
+        <!-- Language Settings -->
+        <div class="action-tile" onclick="toggleAccordion(event, this)">
+            <div class="tile-icon-box" style="background:#ECFDF5; color:#10B981;">
+                <i data-lucide="languages" style="width:28px; height:28px;"></i>
+            </div>
+            <h4>Interface Language</h4>
+            <p>Set your default language for reports and analysis labels.</p>
+            
+            <div class="accordion-content">
+                <div style="margin-top: 20px;">
+                    <select class="period-select" style="width: 100%; max-width: 200px;">
+                        <option value="en">English (US)</option>
+                        <option value="es">Español</option>
+                        <option value="fr">Français</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Notifications -->
+        <div class="action-tile" onclick="toggleAccordion(event, this)">
+            <div class="tile-icon-box" style="background:#F5F3FF; color:#8B5CF6;">
+                <i data-lucide="bell" style="width:28px; height:28px;"></i>
+            </div>
+            <h4>Desktop Notifications</h4>
+            <p>Receive alerts when large PDF processing is complete.</p>
+            
+            <div class="accordion-content">
+                <div style="margin-top: 20px; display: flex; flex-direction: column; gap: 12px; align-items: center;">
+                    <label class="toggle-switch-label" style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                        <input type="checkbox" id="notificationToggle" onchange="NotificationManager.toggleNotifications(this.checked)" style="width: 18px; height: 18px;">
+                        Enable Notifications
+                    </label>
+                    <button class="btn-secondary" onclick="NotificationManager.sendNotification('Test Notification', 'Everything is working!')" style="font-size: 0.8rem; padding: 8px 12px;">
+                        Send Test
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- AI Configuration -->
+        <div class="action-tile" onclick="toggleAccordion(event, this)">
+            <div class="tile-icon-box" style="background:#FFFBEB; color:#F59E0B;">
+                <i data-lucide="zap" style="width:28px; height:28px;"></i>
+            </div>
+            <h4>AI Sensitivity</h4>
+            <p>Adjust comparison models and matching strictness thresholds.</p>
+            
+            <div class="accordion-content">
+                <div style="margin-top: 20px; width: 100%;">
+                    <label style="display: block; font-size: 0.8rem; font-weight: 600; margin-bottom: 8px;">Threshold: 95%</label>
+                    <input type="range" min="0" max="100" value="95" style="width: 100%;">
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+</div>
