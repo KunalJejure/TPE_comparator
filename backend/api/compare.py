@@ -27,6 +27,7 @@ from backend.services.pdf_parser import (
     extract_structured_text,
     page_to_image, 
     get_date_time_bboxes,
+    is_date_time_string,
     RENDER_DPI
 )
 from backend.services.page_aligner import align_pages
@@ -315,8 +316,7 @@ def _run_ai_comparison(
         for p in page_results:
             page_idx = p["page"] - 1  # 0-based index
             has_text_changes = p.get("text_changes_count", 0) > 0
-            # Step 10: Use diff_region_count (non-special regions) to decide if image changed
-            has_visual_changes = p.get("diff_region_count", 0) > 0
+            has_visual_changes = p.get("image_similarity", 1.0) < 0.98
             is_added_or_removed = p.get("disposition") in ("added", "removed")
 
             image_summary.append({
@@ -330,13 +330,7 @@ def _run_ai_comparison(
             if has_text_changes or has_visual_changes or is_added_or_removed:
                 orig_text = texts_original[page_idx] if page_idx < len(texts_original) else ""
                 rev_text = texts_revised[page_idx] if page_idx < len(texts_revised) else ""
-                
-                # Filter line diff to exclude date-only changes from the AI summary context
-                filtered_line_diff = [
-                    d for d in p.get("line_diff", [])
-                    if d["type"] == "equal" or not is_date_time_string(d.get("right_content") or d.get("left_content") or "")
-                ]
-                diff_summary = _summarize_line_diff(filtered_line_diff)
+                diff_summary = _summarize_line_diff(p.get("line_diff", []))
 
                 changed_pages.append({
                     "page": p["page"],
@@ -457,21 +451,7 @@ def process_comparison(
         page_data["line_diff"] = line_diff
 
         # Count changes
-        from backend.services.pdf_parser import is_date_time_string
-        changes_count = 0
-        skipped_dates = 0
-        for d in line_diff:
-            if d["type"] != "equal":
-                content = d.get("right_content") or d.get("left_content") or ""
-                if not is_date_time_string(content):
-                    changes_count += 1
-                else:
-                    skipped_dates += 1
-        
-        if skipped_dates > 0:
-            logger.info("Page %d: Skipped %d date/time text changes. Meaningful text changes: %d", 
-                        page_num, skipped_dates, changes_count)
-        
+        changes_count = sum(1 for d in line_diff if d["type"] != "equal")
         page_data["text_changes_count"] = changes_count
 
         # -- Image rendering (use offset-adjusted page indices) --
@@ -498,6 +478,7 @@ def process_comparison(
 
             overlay_img, orig_hl_img, rev_hl_img, similarity, region_count = generate_diff_overlay(
                 img1, img2, 
+                mask_header_footer=False,
                 date_time_regions1=dt_bboxes1,
                 date_time_regions2=dt_bboxes2
             )
@@ -516,7 +497,8 @@ def process_comparison(
             page_data["diff_region_count"] = 0
 
         # -- Page status (significance scoring) --
-        has_image_changes = page_data["image_similarity"] < 0.98
+        # Mark as image change even for 0.1% difference (0.999 similarity)
+        has_image_changes = page_data["image_similarity"] < 0.9995
         if page_data["disposition"] in ("added", "removed"):
             page_data["status"] = page_data["disposition"].upper()
         elif changes_count > 0 or has_image_changes:
@@ -527,25 +509,24 @@ def process_comparison(
                     continue
                 left = d.get("left_content", "").strip()
                 right = d.get("right_content", "").strip()
-                if left == right or (not left and not right):
+                
+                # Treat date/time/duration changes as trivial
+                if is_date_time_string(left) and is_date_time_string(right):
+                    d["is_trivial"] = True
+                    trivial_count += 1
+                elif left == right or (not left and not right):
+                    d["is_trivial"] = True
                     trivial_count += 1
                 else:
                     meaningful_count += 1
 
+            # Update text_changes_count to exclude ignored changes
+            page_data["text_changes_count"] = meaningful_count
+
             if meaningful_count > 0 or has_image_changes:
-                # Double check that the image changes aren't JUST dates 
-                # (though generate_diff_overlay now returns non-special count,
-                # we already checked has_image_changes = page_data["image_similarity"] < 0.98)
-                # If region_count is 0, it means all visual changes were special (dates)
-                if page_data["diff_region_count"] == 0 and meaningful_count == 0:
-                     logger.info("Page %d: All changes were date/time. Marking as PASS.", page_num)
-                     page_data["status"] = "PASS"
-                else:
-                    logger.info("Page %d: Found %d meaningful text changes and %d visual regions. Marking as FAIL.", 
-                                page_num, meaningful_count, page_data["diff_region_count"])
-                    page_data["status"] = "FAIL"
+                page_data["status"] = "FAIL"
             elif trivial_count > 0:
-                page_data["status"] = "REVIEW"
+                page_data["status"] = "PASS"  # Changed from REVIEW to PASS per "Ignore" request
             else:
                 page_data["status"] = "PASS"
         else:
@@ -695,6 +676,7 @@ def batch_compare(file: UploadFile = File(...)):
                     res = process_comparison(
                         job_id=job_id,
                         job_dir=job_dir,
+                        mask_header_footer=False,
                         original_path=orig_path,
                         revised_path=rev_path,
                         orig_name=orig_path.name,

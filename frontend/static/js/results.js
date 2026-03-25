@@ -38,7 +38,7 @@ function renderResults(data) {
 
     const total = data.total_pages || 0;
     const pages = data.pages || [];
-    const passed = pages.filter(p => p.status === 'PASS' || (p.image_similarity !== undefined && p.image_similarity >= 0.999)).length;
+    const passed = pages.filter(p => p.status === 'PASS').length;
     const changed = pages.filter(p => p.status === 'FAIL').length;
     const avgConf = pages.length > 0
         ? (pages.reduce((s, p) => s + (p.confidence || 0), 0) / pages.length * 100).toFixed(1)
@@ -225,8 +225,8 @@ function renderAllTextDiffs(pages, data) {
                     Page ${p.page}
                 </div>
                 <div class="psh-right">
-                    <span>Changes: <strong>${changesCount}</strong></span>
-                    <span>Visual: <strong>${((1 - p.image_similarity) * 100).toFixed(1)}%</strong></span>
+                    <span>Changes: <strong>${((1 - p.image_similarity) * 100).toFixed(2)}%</strong></span>
+                    <span>Visual: <strong>${((1 - p.image_similarity) * 100).toFixed(2)}%</strong></span>
                 </div>
             </div>
             <div class="page-section-body">
@@ -271,7 +271,7 @@ function renderAllVisualDiffs(pages, idPrefix = '') {
                     Page ${p.page}
                 </div>
                 <div class="psh-right">
-                    <span>Changes: <strong>${((1 - (p.image_similarity || 0)) * 100).toFixed(1)}%</strong></span>
+                    <span>Changes: <strong>${((1 - (p.image_similarity || 0)) * 100).toFixed(2)}%</strong></span>
                     ${regionCount > 0 ? `<span>Regions: <strong>${regionCount}</strong></span>` : ''}
                 </div>
             </div>
@@ -475,6 +475,14 @@ function renderTextDiff(lineDiff, addCount, delCount, replaceCount, origName, re
                 <td class="gutter gutter-right">${rightNum}</td>
                 <td class="code code-right">${rightText}</td>
             </tr>`;
+        } else if (d.is_trivial) {
+            html += `<tr class="diff-trivial" title="Ignored: Date/Time/Duration Change">
+                <td class="gutter gutter-left">${leftNum}</td>
+                <td class="code code-left">${leftText} <span style="font-size:0.7rem; color:var(--text-muted); margin-left:8px;">(Ignored)</span></td>
+                <td class="diff-divider"></td>
+                <td class="gutter gutter-right">${rightNum}</td>
+                <td class="code code-right">${rightText}</td>
+            </tr>`;
         } else if (d.type === 'delete') {
             html += `<tr class="diff-delete">
                 <td class="gutter gutter-left">${leftNum}</td>
@@ -520,7 +528,7 @@ function renderImageDiff(pageData, idPrefix = '') {
     
     const disposition = pageData.disposition || 'compared';
     const regionCount = pageData.diff_region_count || 0;
-    const similarity = ((pageData.image_similarity || 0) * 100).toFixed(1);
+    const similarityPercent = ((pageData.image_similarity || 0) * 100).toFixed(2);
 
     if (disposition === 'added') {
         return `<div class="image-overlay-section">
@@ -546,7 +554,8 @@ function renderImageDiff(pageData, idPrefix = '') {
         return '<div style="padding:24px;text-align:center;color:var(--text-muted);font-size:.88rem;">No images available for this page.</div>';
     }
 
-    if (similarity >= 99.9) {
+    // NEW: Only hide the overlay if similarity is 100% AND no regions were detected
+    if (pageData.image_similarity >= 0.99999 && regionCount === 0) {
         return `
     <div class="image-overlay-section">
         <!-- Side-by-Side (Active by default for identical pages) -->
@@ -563,7 +572,7 @@ function renderImageDiff(pageData, idPrefix = '') {
 
         <div style="padding:16px;text-align:center;color:var(--success);font-size:.9rem;background:var(--success-light);border-radius:var(--radius-sm);border:1px solid var(--diff-add-hl);">
             <i data-lucide="check-circle" style="width:18px;height:18px;display:inline;vertical-align:middle;margin-right:6px;"></i>
-            Pages are visually identical (${((1 - (pageData.image_similarity || 0)) * 100).toFixed(1)}% change). No visual differences found.
+            Pages are visually identical (${((1 - (pageData.image_similarity || 0)) * 100).toFixed(2)}% change). No visual differences found.
         </div>
     </div>`;
     }
@@ -585,7 +594,7 @@ function renderImageDiff(pageData, idPrefix = '') {
         <div id="overlay_view_${idPrefix}${pageData.page}" class="overlay-view">
             <h5>
                 <i data-lucide="scan-search" style="width:14px;height:14px;"></i>
-                Difference Overlay &mdash; ${regionCount} change region${regionCount !== 1 ? 's' : ''} detected (${((1 - (pageData.image_similarity || 0)) * 100).toFixed(1)}% change)
+                Difference Overlay &mdash; ${regionCount} change region${regionCount !== 1 ? 's' : ''} detected (${((1 - (pageData.image_similarity || 0)) * 100).toFixed(2)}% change)
             </h5>
             <p style="font-size:.78rem;color:var(--text-secondary);margin-bottom:12px;text-align:center;">
                 Changed areas are highlighted with red borders and a subtle tint. Text remains fully readable.
@@ -645,8 +654,7 @@ function filterPages(filterType, btnEl) {
         if (filterType === 'changed') {
             show = status !== 'PASS';
         } else if (filterType === 'identical') {
-            const similarity = parseFloat(section.getAttribute('data-image-similarity')) || 0;
-            show = status === 'PASS' || similarity >= 0.999;
+            show = status === 'PASS';
         }
         // 'all' shows everything
 

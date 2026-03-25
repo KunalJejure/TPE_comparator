@@ -14,14 +14,6 @@ from backend.api.auth import router as auth_router
 from backend.config import SECRET_KEY, IS_PRODUCTION
 from backend.database import init_db
 
-import logging
-logging.basicConfig(
-    level=logging.DEBUG,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger(__name__)
-logger.info("Application starting with DEBUG logging enabled")
-
 # Initialize database
 init_db()
 

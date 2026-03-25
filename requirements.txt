@@ -27,3 +27,6 @@ reportlab
 authlib
 itsdangerous
 httpx
+
+# Database
+supabase

@@ -2088,6 +2088,18 @@ img {
     background: var(--diff-gutter-add);
 }
 
+.diff-table tr.diff-trivial td.code {
+    background: var(--card);
+    color: var(--text-muted);
+    font-style: italic;
+    opacity: 0.7;
+}
+
+.diff-table tr.diff-trivial td.gutter {
+    background: var(--diff-gutter);
+    color: var(--text-muted);
+}
+
 .diff-table .hl-del {
     background: var(--diff-del-hl);
     border-radius: 2px;

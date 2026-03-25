@@ -29,6 +29,9 @@ opencv-python = ">=4.9.0"
 numpy = ">=1.26.0"
 scikit-image = ">=0.22.0"
 
+# --- Database ---
+supabase = "*"
+
 [tool.poetry.group.dev.dependencies]
 black = ">=24.2.0"
 isort = ">=5.13.2"

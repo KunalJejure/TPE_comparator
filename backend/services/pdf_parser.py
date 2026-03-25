@@ -126,7 +126,7 @@ def extract_structured_text(pdf_path: str) -> List[Dict[str, Any]]:
                         "font_size": round(font_size, 1),
                         "is_bold": is_bold,
                         "is_heading": is_heading,
-                        "bbox": block.get("bbox", []),
+                        "bbox": line.get("bbox", []),
                     })
                     raw_parts.append(text)
 
@@ -175,31 +175,31 @@ def is_date_time_string(text: str) -> bool:
       - 03/16/2026
       - 2026-03-25
       - 07:31:55
-      - 07:31:55:087
+      - 12:52:21:685
       - 25-Mar-2026
+      - 0 hours, 3 minutes, 45 seconds
     """
     if not text:
         return False
     
     # Common date/time patterns
     patterns = [
-        # Combined: MM/DD/YYYY HH:MM:SS (with optional milliseconds)
-        r"\d{1,2}/\d{1,2}/\d{2,4}\s+\d{1,2}:\d{2}:\d{2}([:.]\d+)?",
-        # MM/DD/YYYY or DD/MM/YYYY
-        r"\b\d{1,2}/\d{1,2}/\d{2,4}\b",
-        # YYYY-MM-DD or DD-MM-YYYY
-        r"\b\d{2,4}-\d{1,2}-\d{1,2}\b",
-        # HH:MM:SS (with optional milliseconds or extra digits)
-        r"\b\d{1,2}:\d{2}:\d{2}([:.]\d+)?\b",
-        # DD-Mon-YYYY (e.g., 25-Mar-2026)
-        r"\b\d{1,2}-[A-Za-z]{3}-\d{2,4}\b",
+        # Date formats: 03/16/2026, 2026-03-25, 25-Mar-2026
+        r"\d{1,4}[-./]\d{1,4}[-./]\d{1,4}",
+        # Time formats: 12:52:21, 12:52:21:685, 07:31:55 PM
+        r"\d{1,2}([:.]\d{2,4}){1,5}(\s*[AP]M)?",
+        # Explicit labels for execution metadata
+        r"(Execution (Start|End) Date/Time|Execution Time Zone|Report Generated|Page \d+ of \d+|Date:|Time:|Duration:|Execution Time:)",
+        # Duration components: 0 hours, 3 minutes, 1.5 seconds
+        r"\d+(\.\d+)?\s*(hours?|minutes?|min|seconds?|sec|milliseconds?|ms)",
+        # Month-Year formats: March 2026
+        r"(January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{4}",
+        # Days of week: Monday, Tuesday...
+        r"(Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)",
     ]
     
     combined = "|".join(f"({p})" for p in patterns)
-    match = re.search(combined, text)
-    if match:
-        logger.debug("Date/time match found in text: '%s' (pattern: %s)", text, match.group())
-    return bool(match)
+    return bool(re.search(combined, text, re.I))
 
 
 def get_date_time_bboxes(structured_page: Dict[str, Any], scale: float = 1.0) -> List[List[float]]:
@@ -211,16 +211,12 @@ def get_date_time_bboxes(structured_page: Dict[str, Any], scale: float = 1.0) ->
     """
     bboxes = []
     for line in structured_page.get("lines", []):
-        text = line.get("text", "")
-        if is_date_time_string(text):
-            bbox = line.get("bbox", [])
+        if is_date_time_string(line.get("text", "")):
+            bbox = line.get("bbox") or []
             if bbox:
                 # Scale from points to pixels
                 scaled_bbox = [c * scale for c in bbox]
                 bboxes.append(scaled_bbox)
-                logger.debug("Found date/time bbox: %s for text: '%s'", scaled_bbox, text)
-    if bboxes:
-        logger.info("Total date/time bboxes extracted: %d", len(bboxes))
     return bboxes
 
 
